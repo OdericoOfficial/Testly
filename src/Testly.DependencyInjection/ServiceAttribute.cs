@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace BuildingBlocks.DependencyInjection
+namespace Testly.DependencyInjection
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
     public abstract class ServiceAttribute : Attribute

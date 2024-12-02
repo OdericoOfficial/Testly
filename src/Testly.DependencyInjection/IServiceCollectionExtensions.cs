@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
 
-namespace BuildingBlocks.DependencyInjection
+namespace Testly.DependencyInjection
 {
     public static class IServiceCollectionExtensions
     {

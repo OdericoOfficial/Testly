@@ -1,16 +1,16 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-namespace BuildingBlocks.DependencyInjection
+namespace Testly.DependencyInjection
 {
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-    public class TransientAttribute : ServiceAttribute
+    public class SingletonAttribute : ServiceAttribute
     {
-        public override ServiceLifetime ServiceLifetime
-            => ServiceLifetime.Transient;
+        public override ServiceLifetime ServiceLifetime 
+            => ServiceLifetime.Singleton;
     }
 
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = false, Inherited = false)]
-    public class TransientAttribute<TService> : SingletonAttribute
+    public class SingletonAttribute<TService> : SingletonAttribute
     {
         public override Type? ServiceType { get; set; } = typeof(TService);
     }
