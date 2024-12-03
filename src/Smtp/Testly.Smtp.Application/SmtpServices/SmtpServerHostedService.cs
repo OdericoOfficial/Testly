@@ -2,7 +2,7 @@
 using Testly.DependencyInjection;
 using Server = SmtpServer.SmtpServer;
 
-namespace Testly.Core.Smtp
+namespace Testly.Smtp.Application.SmtpServices
 {
     [HostedService]
     internal class SmtpServerHostedService : IHostedService
