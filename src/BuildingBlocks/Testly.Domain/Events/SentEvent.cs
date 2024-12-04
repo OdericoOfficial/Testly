@@ -1,0 +1,11 @@
+﻿namespace Testly.Domain.Events
+{
+    public abstract class SentEvent
+    {
+        public DateTime SentTime { get; set; }
+
+        public Guid AggregateId { get; set; }
+
+        public int SentIndex { get; set; }
+    }
+}

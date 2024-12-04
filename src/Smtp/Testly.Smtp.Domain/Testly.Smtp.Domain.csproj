@@ -7,11 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="InfluxDB.Client.Core" Version="4.18.0" />
+    <PackageReference Include="Microsoft.Orleans.Core" Version="9.0.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BuildingBlocks\Testly.Domain\Testly.Domain.csproj" />
+    <ProjectReference Include="..\..\BuildingBlocks\Testly.DependencyInjection\Testly.DependencyInjection.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="States\" />
+    <Folder Include="Grains\" />
+    <Folder Include="Events\" />
   </ItemGroup>
 
 </Project>
