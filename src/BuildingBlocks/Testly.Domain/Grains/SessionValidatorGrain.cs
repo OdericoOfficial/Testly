@@ -50,7 +50,7 @@ namespace Testly.Domain.Grains
             if (_streamProvider is null)
                 _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
             if (_aggregateStream is null)
-                _aggregateStream = _streamProvider.GetStream<AggregateEvent>(State.ReceivedEvent!.AggregateId);
+                _aggregateStream = _streamProvider.GetStream<AggregateEvent>(nameof(AggregateEvent), State.ReceivedEvent!.AggregateId);
             return _aggregateStream;
         }
 

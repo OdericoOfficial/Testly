@@ -7,13 +7,19 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Orleans.Core" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.0.1" />
-    <PackageReference Include="TorchSharp" Version="0.103.1" />
+    <Compile Remove="Observers\**" />
+    <EmbeddedResource Remove="Observers\**" />
+    <None Remove="Observers\**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Observers\" />
+    <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Orleans.Server" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Orleans.Streaming.AdoNet" Version="9.0.1-alpha.1" />
+    <PackageReference Include="TorchSharp" Version="0.103.1" />
   </ItemGroup>
 
 </Project>

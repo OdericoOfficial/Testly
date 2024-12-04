@@ -6,6 +6,8 @@
 
         public DateTime EndTime { get; set; }
 
+        public DateTime LastPublish { get; set; }
+
         public int Smaple { get; set; }
 
         public int BatchSize { get; set; }
