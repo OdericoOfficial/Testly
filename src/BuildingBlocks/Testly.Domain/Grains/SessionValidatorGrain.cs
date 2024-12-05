@@ -1,5 +1,4 @@
-﻿using Orleans;
-using Orleans.Streams;
+﻿using Orleans.Streams;
 using Testly.Domain.Events;
 using Testly.Domain.States;
 
@@ -12,19 +11,19 @@ namespace Testly.Domain.Grains
         private IStreamProvider? _streamProvider;
         private IAsyncStream<AggregateEvent>? _aggregateStream;
 
-        public async Task CacheReceivedEventAsync(TReceivedEvent receivedEvent)
+        public async Task CacheSentEventAsync(TSentEvent sentEvent)
         {
-            State.ReceivedEvent = receivedEvent;
-            if (State.SentEvent is not null)
+            State.SentEvent = sentEvent;
+            if (State.ReceivedEvent is not null)
                 await PublishAsync();
             else
                 await WriteStateAsync();
         }
 
-        public async Task CacheSentEventAsync(TSentEvent sentEvent)
+        public async Task CacheReceivedEventAsync(TReceivedEvent receivedEvent)
         {
-            State.SentEvent = sentEvent;
-            if (State.ReceivedEvent is not null)
+            State.ReceivedEvent = receivedEvent;
+            if (State.SentEvent is not null)
                 await PublishAsync();
             else
                 await WriteStateAsync();
@@ -37,7 +36,7 @@ namespace Testly.Domain.Grains
                 var aggregateStream = GetAggregateStream();
                 await aggregateStream.OnNextAsync(new AggregateEvent
                 {
-                    SentTime = State.SentEvent!.SentTime,
+                    SendingTime = State.SentEvent!.SendingTime,
                     ReceivedTime = State.ReceivedEvent!.ReceivedTime,
                     SentIndex = State.SentEvent.SentIndex,
                     ReceivedIndex = State.ReceivedEvent.ReceivedIndex

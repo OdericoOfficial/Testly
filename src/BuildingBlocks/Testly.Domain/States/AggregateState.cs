@@ -8,9 +8,11 @@
 
         public DateTime LastPublish { get; set; }
 
-        public int Smaple { get; set; }
+        public int Sample { get; set; }
 
         public int BatchSize { get; set; }
+
+        public int ReceivedSample { get; set; }
 
         public byte[] ReceivedMeasurement { get; set; } = [];
 

@@ -2,7 +2,7 @@
 {
     public class AggregateEvent
     {
-        public DateTime SentTime { get; set; }
+        public DateTime SendingTime { get; set; }
 
         public DateTime ReceivedTime { get; set; }
 
