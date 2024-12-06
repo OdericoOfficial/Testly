@@ -15,7 +15,5 @@
         public int ReceivedSample { get; set; }
 
         public byte[] ReceivedMeasurement { get; set; } = [];
-
-        public byte[] SentMeasurement { get; set; } = [];
     }
 }

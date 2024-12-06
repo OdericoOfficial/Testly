@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Reflection;
-using Testly.DependencyInjection;
+using Testly.DependencyInjection.Attributes;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

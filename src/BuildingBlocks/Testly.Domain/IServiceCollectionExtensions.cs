@@ -1,8 +1,10 @@
-﻿using Mapster;
+﻿using System.Reflection;
+using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testly.Domain.Events;
 using Testly.Domain.Factories;
+using Testly.Domain.Factories.Abstractions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -10,6 +12,14 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         public static IServiceCollection AddMapster(this IServiceCollection services)
         {
+            var interfaceType = typeof(IRegister);
+            foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(assembly => assembly.GetTypes()))
+            {
+                if (interfaceType.IsAssignableFrom(type))
+                    services.TryAddSingleton(interfaceType, type);
+            }
+
             services.TryAddSingleton(provider =>
             {
                 var config = new TypeAdapterConfig();
@@ -22,11 +32,25 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        public static IServiceCollection AddMapsterScheduleEventFactory<TSentEvent, TReceivedEvent, TRequest, TResponse>(this IServiceCollection services)
+        public static IServiceCollection AddMapsterSentEventFactory<TSentEvent, TReceivedEvent, TRequest, TResponse>(this IServiceCollection services)
             where TSentEvent : SentEvent
             where TReceivedEvent : ReceivedEvent
         {
-            services.TryAddSingleton<IScheduleEventFactory<TSentEvent, TReceivedEvent, TRequest, TResponse>, MapsterScheduleEventFactory<TSentEvent, TReceivedEvent, TRequest, TResponse>>();
+            services.TryAddSingleton<ISchduleSentEventFactory<TSentEvent, TRequest>, MapsterScheduleSentEventFactory<TSentEvent, TRequest>>();
+            return services;
+        }
+
+        public static IServiceCollection AddMapsterReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>(this IServiceCollection services)
+            where TSentEvent : SentEvent
+            where TReceivedEvent : ReceivedEvent
+        {
+            services.TryAddSingleton<ISchduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>, MapsterScheduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>>();
+            return services;
+        }
+
+        public static IServiceCollection AddLocalGuidFactory(this IServiceCollection services)
+        {
+            services.TryAddSingleton<IGuidFactory, LocalSequentialGuidFactory>();
             return services;
         }
     }

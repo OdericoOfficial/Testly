@@ -1,8 +1,8 @@
 ﻿using Testly.Domain.Commands;
 
-namespace Testly.Application.Services
+namespace Testly.Domain.Grains.Abstractions
 {
-    public interface IScheduleService<TCommand>
+    public interface IScheduleGrain<TCommand> : IGrainWithGuidKey
         where TCommand : ScheduleCommand
     {
         Task RunAsync(TCommand command);

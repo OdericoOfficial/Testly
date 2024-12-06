@@ -7,5 +7,7 @@
         public Guid AggregateId { get; set; }
     
         public int ReceivedIndex { get; set; }
+
+        public Guid ValidatorId { get; set; }
     }
 }

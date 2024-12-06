@@ -1,4 +1,4 @@
-﻿namespace Testly.Domain.Grains
+﻿namespace Testly.Domain.Grains.Abstractions
 {
     public interface IAggregateGrain : IGrainWithGuidKey
     {

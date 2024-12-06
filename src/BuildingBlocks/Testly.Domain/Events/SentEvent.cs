@@ -8,6 +8,6 @@
 
         public Guid AggregateId { get; set; }
 
-        public int SentIndex { get; set; }
+        public Guid ValidatorId { get; set; }
     }
 }

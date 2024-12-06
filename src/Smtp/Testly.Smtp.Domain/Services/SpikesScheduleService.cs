@@ -1,15 +1,15 @@
 ﻿using System.Security.Cryptography;
 using MimeKit;
-using Testly.Application.Services;
 using Testly.DependencyInjection;
-using Testly.Domain.Factories;
+using Testly.Domain.Factories.Abstractions;
+using Testly.Domain.Grains.Abstractions;
 using Testly.Smtp.Domain.Commands;
 using Testly.Smtp.Domain.Events;
 
 namespace Testly.Smtp.Domain.Services
 {
 
-    [Singleton<IScheduleService<SpikesScheduleCommand>>]
+    [Singleton<IScheduleGrain<SpikesScheduleCommand>>]
     internal class SpikesScheduleService : ScheduleService<SmtpSentEvent, SmtpReceivedEvent, MimeMessage, MimeMessage, SpikesScheduleCommand>
     {
         public SpikesScheduleService(IClusterClient clusterClient, IScheduleSessionFactory<MimeMessage, SpikesScheduleCommand> sessionFactory,

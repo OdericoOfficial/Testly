@@ -1,13 +1,13 @@
 ﻿using MimeKit;
-using Testly.Application.Services;
 using Testly.DependencyInjection;
-using Testly.Domain.Factories;
+using Testly.Domain.Factories.Abstractions;
+using Testly.Domain.Grains.Abstractions;
 using Testly.Smtp.Domain.Commands;
 using Testly.Smtp.Domain.Events;
 
 namespace Testly.Smtp.Domain.Services
 {
-    [Singleton<IScheduleService<StepsScheduleCommand>>]
+    [Singleton<IScheduleGrain<StepsScheduleCommand>>]
     internal class StepsScheduleService : ScheduleService<SmtpSentEvent, SmtpReceivedEvent, MimeMessage, MimeMessage, StepsScheduleCommand>
     {
         public StepsScheduleService(IClusterClient clusterClient, IScheduleSessionFactory<MimeMessage, StepsScheduleCommand> sessionFactory,

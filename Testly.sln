@@ -27,6 +27,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.Infrastructure", "sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.Smtp.Infrastructure", "src\Smtp\Testly.Smtp.Infrastructure\Testly.Smtp.Infrastructure.csproj", "{9729DCEA-94A7-4D3E-BC7A-FD19107EC387}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.Reflection", "src\BuildingBlocks\Testly.Reflection\Testly.Reflection.csproj", "{6A2B50C2-442A-4CE2-AB62-F8979B0814D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.AOP", "src\BuildingBlocks\Testly.AOP\Testly.AOP.csproj", "{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -65,6 +69,14 @@ Global
 		{9729DCEA-94A7-4D3E-BC7A-FD19107EC387}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9729DCEA-94A7-4D3E-BC7A-FD19107EC387}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9729DCEA-94A7-4D3E-BC7A-FD19107EC387}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A2B50C2-442A-4CE2-AB62-F8979B0814D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A2B50C2-442A-4CE2-AB62-F8979B0814D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A2B50C2-442A-4CE2-AB62-F8979B0814D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A2B50C2-442A-4CE2-AB62-F8979B0814D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,5 +92,7 @@ Global
 		{98E7AAC1-3824-44F8-9E8A-893F66233E83} = {DFD5295D-6981-4D6B-846E-661CDAF95A69}
 		{F10F9476-51C7-43A1-933F-80627BDC58AA} = {DFD5295D-6981-4D6B-846E-661CDAF95A69}
 		{9729DCEA-94A7-4D3E-BC7A-FD19107EC387} = {873D9642-167B-4EAE-9480-BFB89ED8FCCA}
+		{6A2B50C2-442A-4CE2-AB62-F8979B0814D0} = {DFD5295D-6981-4D6B-846E-661CDAF95A69}
+		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86} = {DFD5295D-6981-4D6B-846E-661CDAF95A69}
 	EndGlobalSection
 EndGlobal

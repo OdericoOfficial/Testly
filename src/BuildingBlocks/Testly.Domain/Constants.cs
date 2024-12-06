@@ -3,5 +3,15 @@
     public static class Constants
     {
         public const string DefaultStreamProvider = "Default";
+
+        public const string DefaultSessionValidatorNamespace = "SessionValidator";
+
+        public const string DefaultAggregateNamespace = "Aggregate";
+
+        public const string DefaultAggregateCompleteReminder = "Completed";
+
+        public const string DefaultScalarNamespace = "Scalar";
+
+        public const string DefaultSummaryNamespcace = "Summary";
     }
 }

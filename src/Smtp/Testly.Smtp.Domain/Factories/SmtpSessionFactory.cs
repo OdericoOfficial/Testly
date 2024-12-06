@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using MailKit.Net.Smtp;
 using MimeKit;
-using Testly.Domain.Factories;
+using Testly.Domain.Factories.Abstractions;
 using Testly.Smtp.Domain.Commands;
 
 namespace Testly.Smtp.Application.Factories

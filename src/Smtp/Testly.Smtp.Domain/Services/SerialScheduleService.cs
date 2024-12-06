@@ -1,13 +1,13 @@
 ﻿using MimeKit;
-using Testly.Application.Services;
 using Testly.DependencyInjection;
-using Testly.Domain.Factories;
+using Testly.Domain.Factories.Abstractions;
+using Testly.Domain.Grains.Abstractions;
 using Testly.Smtp.Domain.Commands;
 using Testly.Smtp.Domain.Events;
 
 namespace Testly.Smtp.Domain.Services
 {
-    [Singleton<IScheduleService<SerialSchduleComand>>]
+    [Singleton<IScheduleGrain<SerialSchduleComand>>]
     internal class SerialScheduleService : ScheduleService<SmtpSentEvent, SmtpReceivedEvent, MimeMessage, MimeMessage, SerialSchduleComand>
     {
         public SerialScheduleService(IClusterClient clusterClient, IScheduleSessionFactory<MimeMessage, SerialSchduleComand> sessionFactory, 

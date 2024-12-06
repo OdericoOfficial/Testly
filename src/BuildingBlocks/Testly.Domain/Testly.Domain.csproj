@@ -13,12 +13,13 @@
     <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="9.0.1" />
-    <PackageReference Include="Microsoft.Orleans.Streaming" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Streaming.AdoNet" Version="9.0.1-alpha.1" />
-    <PackageReference Include="TorchSharp" Version="0.103.1" />
+    <PackageReference Include="Rougamo.Fody" Version="4.0.4" />
+    <PackageReference Include="TorchSharp" Version="0.104.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Testly.AOP\Testly.AOP.csproj" />
     <ProjectReference Include="..\Testly.DependencyInjection\Testly.DependencyInjection.csproj" />
   </ItemGroup>
 

@@ -8,7 +8,7 @@ using SmtpServer.Protocol;
 using SmtpServer.Storage;
 using Testly.DependencyInjection;
 using Testly.Domain.Factories;
-using Testly.Domain.Grains;
+using Testly.Domain.Grains.Abstractions;
 using Testly.Smtp.Domain.Events;
 
 namespace Testly.Smtp.Application.Services

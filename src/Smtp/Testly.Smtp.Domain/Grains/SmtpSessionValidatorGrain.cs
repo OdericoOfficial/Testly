@@ -1,5 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
-using Testly.Domain.Grains;
+using Testly.Domain.Grains.Abstractions;
 using Testly.Smtp.Domain.Events;
 
 namespace Testly.Smtp.Domain.Grains
