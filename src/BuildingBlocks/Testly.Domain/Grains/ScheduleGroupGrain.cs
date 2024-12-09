@@ -1,4 +1,6 @@
-﻿using Testly.Domain.Commands;
+﻿using MapsterMapper;
+using Microsoft.Extensions.Logging;
+using Testly.Domain.Commands;
 using Testly.Domain.Grains.Abstractions;
 using Testly.Domain.States;
 
@@ -6,6 +8,15 @@ namespace Testly.Domain.Grains
 {
     internal class ScheduleGroupGrain : Grain<ScheduleGroupState>, IScheduleGroupGrain
     {
+        private readonly IMapper _mapper;
+        private readonly ILogger<ScheduleGroupGrain> _logger;
+
+        public ScheduleGroupGrain(IMapper mapper, ILogger<ScheduleGroupGrain> logger)
+        {
+            _mapper = mapper;
+            _logger = logger;
+        }
+
         public Task ModifyGroupAsync(ModifyGroupCommand command)
         {
             State.Subject = command.Subject;
@@ -15,11 +26,6 @@ namespace Testly.Domain.Grains
         }
 
         public Task<Guid> AddLayerAsync(AddLayerCommand command)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<ScheduleGroupState> GetGroupAsync()
         {
             throw new NotImplementedException();
         }

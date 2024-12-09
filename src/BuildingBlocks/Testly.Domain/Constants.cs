@@ -13,5 +13,9 @@
         public const string DefaultScalarNamespace = "Scalar";
 
         public const string DefaultSummaryNamespcace = "Summary";
+
+        public const string DefaultSchduleUnitCompletedNamespace = "SchduleUnitCompleted";
+
+        public const string DefaultSchduleLayerCompletedNamesapce = "ScheduleLayerCompleted";
     }
 }

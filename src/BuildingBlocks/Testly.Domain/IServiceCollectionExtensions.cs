@@ -2,7 +2,7 @@
 using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Testly.Domain.Events;
+using Testly.Domain.Events.Abstractions;
 using Testly.Domain.Factories;
 using Testly.Domain.Factories.Abstractions;
 
@@ -33,16 +33,16 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
         public static IServiceCollection AddMapsterSentEventFactory<TSentEvent, TReceivedEvent, TRequest, TResponse>(this IServiceCollection services)
-            where TSentEvent : SentEvent
-            where TReceivedEvent : ReceivedEvent
+            where TSentEvent : struct, ISentEvent
+            where TReceivedEvent : struct, IReceivedEvent
         {
             services.TryAddSingleton<ISchduleSentEventFactory<TSentEvent, TRequest>, MapsterScheduleSentEventFactory<TSentEvent, TRequest>>();
             return services;
         }
 
         public static IServiceCollection AddMapsterReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>(this IServiceCollection services)
-            where TSentEvent : SentEvent
-            where TReceivedEvent : ReceivedEvent
+            where TSentEvent : struct, ISentEvent
+            where TReceivedEvent : struct, IReceivedEvent
         {
             services.TryAddSingleton<ISchduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>, MapsterScheduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>>();
             return services;

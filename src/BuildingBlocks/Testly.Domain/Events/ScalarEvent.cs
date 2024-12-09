@@ -1,17 +1,17 @@
 ﻿namespace Testly.Domain.Events
 {
-    public class ScalarEvent
+    public record struct ScalarEvent
     {
-        public int Index { get; set; }
+        public int Index { get; init; }
 
-        public float Avg { get; set; }
+        public float Avg { get; init; }
 
-        public float Mid { get; set; }
+        public float Mid { get; init; }
 
-        public float Min { get; set; }
+        public float Min { get; init; }
 
-        public float Max { get; set; }
+        public float Max { get; init; }
 
-        public float Std { get; set; }
+        public float Std { get; init; }
     }
 }

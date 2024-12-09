@@ -1,9 +1,9 @@
 ﻿using System.Collections.Immutable;
-using Testly.Domain.Commands;
+using Testly.Domain.Commands.Abstractions;
 
 namespace Testly.Smtp.Domain.Commands
 {
-    public abstract class SmtpScheduleCommand : ScheduleCommand
+    public abstract class SmtpScheduleCommand : IScheduleUnitCommand
     {
         public string? CertainFrom { get; set; }
 

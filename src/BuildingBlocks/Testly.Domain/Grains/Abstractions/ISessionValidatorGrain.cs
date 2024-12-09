@@ -1,11 +1,11 @@
 ﻿using Orleans.Streams;
-using Testly.Domain.Events;
+using Testly.Domain.Events.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
     public interface ISessionValidatorGrain<TSentEvent, TReceivedEvent> : IGrainWithGuidKey
-        where TSentEvent : SentEvent
-        where TReceivedEvent : ReceivedEvent
+        where TSentEvent : struct, ISentEvent
+        where TReceivedEvent : struct, IReceivedEvent
     {
         Task OnSentEventReceivedAsync(TSentEvent sentEvent, StreamSequenceToken? sequenceToken = null);
 

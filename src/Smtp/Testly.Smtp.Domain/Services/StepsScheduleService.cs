@@ -7,7 +7,7 @@ using Testly.Smtp.Domain.Events;
 
 namespace Testly.Smtp.Domain.Services
 {
-    [Singleton<IScheduleGrain<StepsScheduleCommand>>]
+    [Singleton<IScheduleUnitGrain<StepsScheduleCommand>>]
     internal class StepsScheduleService : ScheduleService<SmtpSentEvent, SmtpReceivedEvent, MimeMessage, MimeMessage, StepsScheduleCommand>
     {
         public StepsScheduleService(IClusterClient clusterClient, IScheduleSessionFactory<MimeMessage, StepsScheduleCommand> sessionFactory,

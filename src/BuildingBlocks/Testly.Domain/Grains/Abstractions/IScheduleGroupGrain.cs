@@ -9,6 +9,5 @@ namespace Testly.Domain.Grains.Abstractions
 
         Task<Guid> AddLayerAsync(AddLayerCommand command);
 
-        Task<ScheduleGroupState> GetGroupAsync(); 
     }
 }

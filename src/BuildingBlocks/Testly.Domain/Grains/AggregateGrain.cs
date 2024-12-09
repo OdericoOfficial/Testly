@@ -18,7 +18,11 @@ namespace Testly.Domain.Grains
         private IAsyncStream<AggregateEvent>? _aggregateStream;
         private IAsyncStream<ScalarEvent>? _scalarStream;
         private IAsyncStream<SummaryEvent>? _summaryStream;
+        private StreamSubscriptionHandle<AggregateEvent>? _subscriptionHandle;
+
         private torch.Tensor? _receivedMeasurement;
+        private AggregateProcess _process;
+        private bool _isModified;
 
         public AggregateGrain(ILogger<AggregateGrain> logger)
         {
@@ -28,27 +32,32 @@ namespace Testly.Domain.Grains
         [Rougamo<LoggingException>]
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
-            _aggregateStream = _streamProvider.GetStream<AggregateEvent>(Constants.DefaultAggregateNamespace, this.GetPrimaryKey());
-            _scalarStream = _streamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, this.GetPrimaryKey());
-            _summaryStream = _streamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, this.GetPrimaryKey()); 
-            await _aggregateStream.SubscribeAsync(this);
+            _isModified = false;
+            
 
             if (State.ReceivedMeasurement.Length > 0)
                 _receivedMeasurement = torch.frombuffer(State.ReceivedMeasurement, torch.ScalarType.Float32);
+
+            _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
+            _aggregateStream = _streamProvider.GetStream<AggregateEvent>(Constants.DefaultAggregateNamespace, this.GetPrimaryKey());
+            _scalarStream = _streamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, this.GetPrimaryKey());
+            _summaryStream = _streamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, this.GetPrimaryKey());
+            _subscriptionHandle = await _aggregateStream.SubscribeAsync(this);
         }
 
         [Rougamo<LoggingException>]
         public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            if (_receivedMeasurement is not null)
+            if (_isModified)
             {
-                State.ReceivedMeasurement = _receivedMeasurement.bytes.ToArray();
-                _receivedMeasurement.Dispose();
+                if (_receivedMeasurement is not null)
+                {
+                    State.ReceivedMeasurement = _receivedMeasurement.bytes.ToArray();
+                    _receivedMeasurement.Dispose();
+                }
+
+                await WriteStateAsync();
             }
-
-            await WriteStateAsync();
-
             _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
                 nameof(AggregateGrain), this.GetPrimaryKey(), reason);
         }
@@ -56,6 +65,7 @@ namespace Testly.Domain.Grains
         [Rougamo<LoggingException>]
         public async Task StartMeasurementAsync(int sample, int batchSize)
         {
+            _isModified = true;
             State.Sample = sample;
             State.BatchSize = batchSize;
 
@@ -69,6 +79,7 @@ namespace Testly.Domain.Grains
 
         public Task OnNextAsync(AggregateEvent item, StreamSequenceToken? token = null)
         {
+            _isModified = true;
             var time = Convert.ToSingle((item.ReceivedTime - item.SendingTime).TotalMilliseconds);
             State.ReceivedSample++;
 
@@ -100,15 +111,27 @@ namespace Testly.Domain.Grains
             var reminder = await this.GetReminder(Constants.DefaultAggregateCompleteReminder);
             if (reminder is not null)
                 await this.UnregisterReminder(reminder);
+
+            if (_receivedMeasurement is not null)
+            {
+                _receivedMeasurement.Dispose();
+                _receivedMeasurement = null;
+            }
+
+            if (_subscriptionHandle is not null)
+                await _subscriptionHandle.UnsubscribeAsync();
+
             await ClearStateAsync();
         }
 
-        public async Task ReceiveReminder(string reminderName, TickStatus status)
+        public Task ReceiveReminder(string reminderName, TickStatus status)
         {
-            if (reminderName == Constants.DefaultAggregateCompleteReminder 
-                && _aggregateStream is not null 
-                && (DateTime.UtcNow - State.LastPublish) > TimeSpan.FromMinutes(2))
-                await _aggregateStream.OnCompletedAsync();
+            if (reminderName == Constants.DefaultAggregateCompleteReminder
+                && (DateTime.UtcNow - State.LastPublish) > TimeSpan.FromMinutes(2)
+                && _aggregateStream is not null)
+                return _aggregateStream.OnCompletedAsync();
+            else
+                return Task.CompletedTask;
         }
 
         private async Task PublishAsync()
@@ -117,23 +140,38 @@ namespace Testly.Domain.Grains
             {
                 var start = 0;
                 var end = 0;
-                while (end < State.ReceivedSample)
+
+                if (_scalarStream is not null)
                 {
-                    end = end + State.BatchSize < State.ReceivedSample ? end + State.BatchSize : State.ReceivedSample;
+                    while (end < State.ReceivedSample)
+                    {
+                        end = end + State.BatchSize < State.ReceivedSample ? end + State.BatchSize : State.ReceivedSample;
 
-                    if (_receivedMeasurement is not null && _scalarStream is not null)
-                        await PublishScalarAsync(_receivedMeasurement, start / State.BatchSize, start, end);
+                        if (_receivedMeasurement is not null)
+                            await PublishScalarAsync(_scalarStream, _receivedMeasurement,
+                                start / State.BatchSize, start, end);
 
-                    start += State.BatchSize;
+                        start += State.BatchSize;
+                    }
+
+                    await _scalarStream.OnCompletedAsync();
                 }
 
-                if (_receivedMeasurement is not null && _summaryStream is not null)
-                    await PublishSummaryAsync(_receivedMeasurement, State.ReceivedSample, State.Sample, State.StartTime, State.EndTime);
+
+                if (_receivedMeasurement is not null
+                    && _summaryStream is not null)
+                {
+                    await PublishSummaryAsync(_summaryStream, _receivedMeasurement, 
+                        State.ReceivedSample, State.Sample,
+                        State.StartTime, State.EndTime);
+                    await _summaryStream.OnCompletedAsync();   
+                }
             }
         }
 
         [Rougamo<LoggingException>]
-        private Task PublishScalarAsync(torch.Tensor tensor, int index, int start, int end)
+        private Task PublishScalarAsync(IAsyncStream<ScalarEvent> scalarStream, torch.Tensor tensor,
+            int index, int start, int end)
         {
             var tempSlicedTensor = tensor[torch.TensorIndex.Slice(start, end)];
             var scalarEvent = new ScalarEvent
@@ -145,11 +183,12 @@ namespace Testly.Domain.Grains
                 Mid = torch.median(tempSlicedTensor).item<float>(),
                 Std = torch.std(tempSlicedTensor).item<float>()
             };
-            return _scalarStream!.OnNextAsync(scalarEvent);
+            return scalarStream.OnNextAsync(scalarEvent);
         }
 
         [Rougamo<LoggingException>]
-        private Task PublishSummaryAsync(torch.Tensor tensor, int receivedSample, int sample, 
+        private Task PublishSummaryAsync(IAsyncStream<SummaryEvent> summaryStream, torch.Tensor tensor, 
+            int receivedSample, int sample, 
             DateTime startTime, DateTime endTime)
         {
             var slicedTensor = tensor[torch.TensorIndex.Slice(0, receivedSample)];
@@ -170,7 +209,7 @@ namespace Testly.Domain.Grains
                 Quantile95 = torch.quantile(slicedTensor, 0.95f).item<float>(),
                 Quantile99 = torch.quantile(slicedTensor, 0.99f).item<float>()
             };
-            return _summaryStream!.OnNextAsync(summaryEvent);
+            return summaryStream.OnNextAsync(summaryEvent);
         }
     }
 }

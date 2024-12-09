@@ -1,33 +1,33 @@
 ﻿namespace Testly.Domain.Events
 {
-    public class SummaryEvent
+    public record struct SummaryEvent
     {
-        public DateTime StartTime { get; set; }
+        public DateTime StartTime { get; init; }
 
-        public DateTime EndTime { get; set; }
+        public DateTime EndTime { get; init; }
 
-        public int Sample { get; set; }
+        public int Sample { get; init; }
 
-        public int ReceivedSample { get; set; }
+        public int ReceivedSample { get; init; }
 
-        public float Avg { get; set; }
+        public float Avg { get; init; }
 
-        public float Mid { get; set; }
+        public float Mid { get; init; }
         
-        public float Min { get; set; }
+        public float Min { get; init; }
 
-        public float Max { get; set; }
+        public float Max { get; init; }
 
-        public float Std { get; set; }
+        public float Std { get; init; }
 
-        public float Error { get; set; }
+        public float Error { get; init; }
 
-        public float TPS { get; set; }
+        public float TPS { get; init; }
 
-        public float Quantile90 { get; set; }
+        public float Quantile90 { get; init; }
 
-        public float Quantile95 { get; set; }
+        public float Quantile95 { get; init; }
 
-        public float Quantile99 { get; set; }
+        public float Quantile99 { get; init; }    
     }
 }

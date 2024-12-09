@@ -1,8 +1,8 @@
-﻿using Testly.Domain.Events;
+﻿using Testly.Domain.Events.Abstractions;
 
 namespace Testly.Smtp.Domain.Events
 {
-    public class SmtpReceivedEvent : ReceivedEvent
+    public class SmtpReceivedEvent : IReceivedEvent
     {
         public string From { get; set; } = string.Empty;
 

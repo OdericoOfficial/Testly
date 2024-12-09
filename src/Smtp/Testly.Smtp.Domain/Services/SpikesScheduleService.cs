@@ -9,7 +9,7 @@ using Testly.Smtp.Domain.Events;
 namespace Testly.Smtp.Domain.Services
 {
 
-    [Singleton<IScheduleGrain<SpikesScheduleCommand>>]
+    [Singleton<IScheduleUnitGrain<SpikesScheduleCommand>>]
     internal class SpikesScheduleService : ScheduleService<SmtpSentEvent, SmtpReceivedEvent, MimeMessage, MimeMessage, SpikesScheduleCommand>
     {
         public SpikesScheduleService(IClusterClient clusterClient, IScheduleSessionFactory<MimeMessage, SpikesScheduleCommand> sessionFactory,

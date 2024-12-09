@@ -1,11 +1,11 @@
 ﻿namespace Testly.Domain.Events
 {
-    public class AggregateEvent
+    public record struct AggregateEvent
     {
-        public DateTime SendingTime { get; set; }
+        public DateTime SendingTime { get; init; }
 
-        public DateTime ReceivedTime { get; set; }
+        public DateTime ReceivedTime { get; init; }
 
-        public int ReceivedIndex { get; set; }
+        public int ReceivedIndex { get; init; }
     }
 }
