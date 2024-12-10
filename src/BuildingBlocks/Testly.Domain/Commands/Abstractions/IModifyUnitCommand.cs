@@ -1,6 +1,6 @@
 ﻿namespace Testly.Domain.Commands.Abstractions
 {
-    public interface IScheduleUnitCommand
+    public interface IModifyUnitCommand
     {
         string Name { get; init; }
 

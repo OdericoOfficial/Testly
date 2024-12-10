@@ -8,79 +8,81 @@ using Testly.Domain.States;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract class SessionValidatorGrain<TSentEvent, TReceivedEvent> : Grain<SessionState<TSentEvent, TReceivedEvent>>, ISessionValidatorGrain<TSentEvent, TReceivedEvent>
+    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> : Grain<SessionState<TSentEvent, TReceivedEvent>>, ISessionValidatorGrain<TSentEvent, TReceivedEvent>
         where TSentEvent : struct, ISentEvent
         where TReceivedEvent : struct, IReceivedEvent
     {
-        private readonly ILogger<SessionValidatorGrain<TSentEvent, TReceivedEvent>> _logger;
+        #region Field
+        private readonly ILoggerFactory _loggerFactory;
+        private readonly ILogger _logger;
 
         private IStreamProvider? _streamProvider;
+
+        #region AsyncStream
         private IAsyncStream<TSentEvent>? _sentStream;
         private IAsyncStream<TReceivedEvent>? _receivedStream;
+        #endregion
+
+        #region AsyncObserver
+        private IAsyncObserver<TSentEvent>? _sentObserver;
+        private IAsyncObserver<TReceivedEvent>? _receivedObserver;
+        #endregion
+
+        #region SubscriptionHandle
         private StreamSubscriptionHandle<TSentEvent>? _sentHandle;
         private StreamSubscriptionHandle<TReceivedEvent>? _receivedHandle;
-        private int _eventCount;
-        private bool _isModified;
+        #endregion
 
-        protected SessionValidatorGrain(ILogger<SessionValidatorGrain<TSentEvent, TReceivedEvent>> logger)
+        private int _completedCount;
+        #endregion
+
+        protected SessionValidatorGrain(ILoggerFactory loggerFactory)
         {
-            _logger = logger;
+            _logger = loggerFactory.CreateLogger(GetType());
+            _loggerFactory = loggerFactory;
         }
 
         [Rougamo<LoggingException>]
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            _isModified = false;
-            _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
+            DelayDeactivation(TimeSpan.FromMinutes(2));
+            _completedCount = State.CompletedCount;        
             var validatorId = this.GetPrimaryKey();
-            
+            _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
+
+            #region AsyncStream
             _sentStream = _streamProvider.GetStream<TSentEvent>(Constants.DefaultSessionValidatorNamespace, validatorId);
             _receivedStream = _streamProvider.GetStream<TReceivedEvent>(Constants.DefaultSessionValidatorNamespace, validatorId);
-            
-            _sentHandle = await _sentStream.SubscribeAsync(OnSentEventReceivedAsync, ex =>
-            {
-                _logger.LogError(ex, "Unexpected exception in AsyncStream {Name} from {GrainName} {GrainId}",
-                    typeof(TSentEvent).Name, GetType().Name, this.GetPrimaryKey());
-                return Task.CompletedTask;
-            });
-            _receivedHandle = await _receivedStream.SubscribeAsync(OnReceivedEventReceivedAsync, ex =>
-            {
-                _logger.LogError(ex, "Unexpected exception in AsyncStream {Name} from {GrainName} {GrainId}",
-                    typeof(TReceivedEvent).Name, GetType().Name, this.GetPrimaryKey());
-                return Task.CompletedTask;
-            });
-            _eventCount = State.EventCount;
+            #endregion
+
+            #region AsyncObserver
+            _sentObserver = new SentEventObserver(this, _loggerFactory.CreateLogger<SentEventObserver>());
+            _receivedObserver = new ReceivedEventObserver(this, _loggerFactory.CreateLogger<ReceivedEventObserver>());
+            #endregion
+
+            #region SubscriptionHandle
+            _sentHandle = await _sentStream.SubscribeAsync(_sentObserver);
+            _receivedHandle = await _receivedStream.SubscribeAsync(_receivedObserver);
+            #endregion
+
         }
 
         [Rougamo<LoggingException>]
         public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            if (_isModified)
-            {
-                State.EventCount = _eventCount;
-                await WriteStateAsync();
-            }
+            _completedCount = 0;
+            await ClearStateAsync();
+
+            #region SubscriptionHandle
+            if (_sentHandle is not null)
+                await _sentHandle.UnsubscribeAsync();
+
+            if (_receivedHandle is not null)
+                await _receivedHandle.UnsubscribeAsync();
+            #endregion
 
             _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
-                nameof(AggregateGrain), this.GetPrimaryKey(), reason);
-        }
-
-        [Rougamo<LoggingException>]
-        public async Task OnSentEventReceivedAsync(TSentEvent sentEvent, StreamSequenceToken? sequenceToken)
-        {
-            _isModified = true;
-            State.SentEvent = sentEvent;
-            if (Interlocked.Increment(ref _eventCount) == 2)
-                await PublishAsync();
-        }
-
-        [Rougamo<LoggingException>]
-        public async Task OnReceivedEventReceivedAsync(TReceivedEvent receivedEvent, StreamSequenceToken? sequenceToken)
-        {
-            _isModified = true;
-            State.ReceivedEvent = receivedEvent;
-            if (Interlocked.Increment(ref _eventCount) == 2)
-                await PublishAsync();
+                GetType().Name, this.GetPrimaryKey(), reason);
         }
 
         private async Task PublishAsync()
@@ -94,14 +96,6 @@ namespace Testly.Domain.Grains.Abstractions
                     ReceivedTime = State.ReceivedEvent.ReceivedTime,
                     ReceivedIndex = State.ReceivedEvent.ReceivedIndex
                 });
-
-                await ClearStateAsync();
-
-                if (_sentHandle is not null)
-                    await _sentHandle.UnsubscribeAsync();
-
-                if (_receivedHandle is not null)
-                    await _receivedHandle.UnsubscribeAsync();
             }
         }
 

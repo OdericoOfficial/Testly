@@ -10,6 +10,6 @@ namespace Testly.Domain.States
 
         public TReceivedEvent ReceivedEvent { get; set; }
         
-        public int EventCount { get; set; }
+        public int CompletedCount { get; set; }
     }
 }

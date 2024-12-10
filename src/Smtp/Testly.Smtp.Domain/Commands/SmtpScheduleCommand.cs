@@ -3,7 +3,7 @@ using Testly.Domain.Commands.Abstractions;
 
 namespace Testly.Smtp.Domain.Commands
 {
-    public abstract class SmtpScheduleCommand : IScheduleUnitCommand
+    public abstract class SmtpScheduleCommand : IModifyUnitCommand
     {
         public string? CertainFrom { get; set; }
 

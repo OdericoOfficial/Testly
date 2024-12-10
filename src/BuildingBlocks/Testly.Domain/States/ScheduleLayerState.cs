@@ -8,17 +8,19 @@ namespace Testly.Domain.States
 
         public DateTime EndTime { get; set; }
 
-        public AddLayerCommand Command { get; set; }
-
-        public int EventCount { get; set; }
+        public ModifyLayerCommand Command { get; set; }
 
         public List<ScheduleUnitCache> Units { get; set; } = [];
 
         public class ScheduleUnitCache
         {
+            public DateTime StartTime { get; set; }
+
+            public DateTime EndTime { get; set; }
+
             public bool IsFinished { get; set; }
 
-            public Guid ScheduleId { get; set; }
+            public Guid UnitId { get; set; }
         }
     }
 }

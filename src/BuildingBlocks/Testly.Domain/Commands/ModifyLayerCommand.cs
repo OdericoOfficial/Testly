@@ -1,6 +1,6 @@
 ﻿namespace Testly.Domain.Commands
 {
-    public record struct AddLayerCommand
+    public record struct ModifyLayerCommand
     {
         public string Name { get; init; }
 

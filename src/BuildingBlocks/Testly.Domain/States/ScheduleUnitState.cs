@@ -3,15 +3,8 @@ using Testly.Domain.Events;
 
 namespace Testly.Domain.States
 {
-    public enum ScheduleUnitProcess
-    {
-        None = 0,
-        Finished = 0,
-        Running = 1,
-    }
-
     public class ScheduleUnitState<TCommand>
-        where TCommand : struct, IScheduleUnitCommand
+        where TCommand : struct, IModifyUnitCommand
     {
         public TCommand Command { get; set; }
 
@@ -19,6 +12,10 @@ namespace Testly.Domain.States
 
         public List<ScalarEvent> Scalars { get; set; } = []; 
 
-        public int EventCount { get; set; }
+        public Guid CurrentAggregateId { get; set; }
+
+        public int CompletedCount { get; set; }
+
+        public int Process { get; set; }
     }
 }

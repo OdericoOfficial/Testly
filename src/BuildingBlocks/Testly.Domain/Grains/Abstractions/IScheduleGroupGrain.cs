@@ -1,5 +1,4 @@
 ﻿using Testly.Domain.Commands;
-using Testly.Domain.States;
 
 namespace Testly.Domain.Grains.Abstractions
 {
@@ -7,7 +6,8 @@ namespace Testly.Domain.Grains.Abstractions
     {
         Task ModifyGroupAsync(ModifyGroupCommand command);
 
-        Task<Guid> AddLayerAsync(AddLayerCommand command);
+        Task<Guid> AddLayerAsync(ModifyLayerCommand command);
 
+        Task CancelAsync();
     }
 }

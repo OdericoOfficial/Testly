@@ -16,6 +16,10 @@
 
         public class ScheduleLayerCache
         {
+            public DateTime StartTime { get; set; }
+
+            public DateTime EndTime { get; set; }
+
             public bool IsFinished { get; set; }
 
             public Guid LayerId { get; set; }

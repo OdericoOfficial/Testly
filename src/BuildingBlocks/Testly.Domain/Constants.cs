@@ -17,5 +17,9 @@
         public const string DefaultSchduleUnitCompletedNamespace = "SchduleUnitCompleted";
 
         public const string DefaultSchduleLayerCompletedNamesapce = "ScheduleLayerCompleted";
+
+        public const string DefaultScheduleUnitCancelNamesapce = "ScheduleUnitCancel";
+
+        public const string DefaultScheduleUnitExecuteEvent = "ScheduleUnitExecute";
     }
 }

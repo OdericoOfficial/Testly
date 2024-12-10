@@ -3,12 +3,12 @@
 namespace Testly.Domain.Grains.Abstractions
 {
     public interface IScheduleUnitGrain<TCommand> : IGrainWithGuidKey
-        where TCommand : IScheduleUnitCommand
+        where TCommand : IModifyUnitCommand
     {
-        Task AddUnitAsync(TCommand command);
+        Task ModifyUnitAsync(TCommand command);
 
-        Task DeleteUnitAsync();
+        Task ClearUnitAsync();
 
-        Task RunAsync();
+        Task ExecuteAsync();
     }
 }

@@ -10,62 +10,82 @@ using TorchSharp;
 namespace Testly.Domain.Grains
 {
     [ImplicitStreamSubscription(Constants.DefaultAggregateNamespace)]
-    internal class AggregateGrain : Grain<AggregateState>, IAggregateGrain, IAsyncObserver<AggregateEvent>, IRemindable
+    internal partial class AggregateGrain : Grain<AggregateState>, IAggregateGrain, IRemindable
     {
+        #region Field
         private readonly ILogger<AggregateGrain> _logger;
+        private readonly ILoggerFactory _loggerFactory;
 
         private IStreamProvider? _streamProvider;
+
+        #region AsyncStream
         private IAsyncStream<AggregateEvent>? _aggregateStream;
         private IAsyncStream<ScalarEvent>? _scalarStream;
         private IAsyncStream<SummaryEvent>? _summaryStream;
-        private StreamSubscriptionHandle<AggregateEvent>? _subscriptionHandle;
+        #endregion
+
+        #region AsyncObserver
+        private IAsyncObserver<AggregateEvent>? _aggregateObserver;
+        #endregion
+
+        #region SubscriptionHandle
+        private StreamSubscriptionHandle<AggregateEvent>? _aggregateHandle;
+        #endregion
 
         private torch.Tensor? _receivedMeasurement;
-        private AggregateProcess _process;
-        private bool _isModified;
+        #endregion
 
-        public AggregateGrain(ILogger<AggregateGrain> logger)
+        public AggregateGrain(ILogger<AggregateGrain> logger, ILoggerFactory loggerFactory)
         {
             _logger = logger;
+            _loggerFactory = loggerFactory;
         }
 
         [Rougamo<LoggingException>]
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            _isModified = false;
-            
-
             if (State.ReceivedMeasurement.Length > 0)
                 _receivedMeasurement = torch.frombuffer(State.ReceivedMeasurement, torch.ScalarType.Float32);
 
             _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
-            _aggregateStream = _streamProvider.GetStream<AggregateEvent>(Constants.DefaultAggregateNamespace, this.GetPrimaryKey());
-            _scalarStream = _streamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, this.GetPrimaryKey());
-            _summaryStream = _streamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, this.GetPrimaryKey());
-            _subscriptionHandle = await _aggregateStream.SubscribeAsync(this);
+            var aggregateId = this.GetPrimaryKey();
+
+            #region AsyncStream
+            _aggregateStream = _streamProvider.GetStream<AggregateEvent>(Constants.DefaultAggregateNamespace, aggregateId);
+            if (State.UnitId != default)
+            {
+                _scalarStream = _streamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, State.UnitId);
+                _summaryStream = _streamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, State.UnitId);
+            }
+            #endregion
+
+            #region AsyncObserver
+            _aggregateObserver = new AggregateEventObserver(this, _loggerFactory.CreateLogger<AggregateEventObserver>());
+            #endregion
+
+            #region SubscriptionHandle
+            _aggregateHandle = await _aggregateStream.SubscribeAsync(_aggregateObserver);
+            #endregion
         }
 
         [Rougamo<LoggingException>]
         public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            if (_isModified)
-            {
-                if (_receivedMeasurement is not null)
-                {
-                    State.ReceivedMeasurement = _receivedMeasurement.bytes.ToArray();
-                    _receivedMeasurement.Dispose();
-                }
+            _receivedMeasurement?.Dispose();
+            await ClearStateAsync();
 
-                await WriteStateAsync();
-            }
+            #region SubscriptionHandle
+            if (_aggregateHandle is not null)
+                await _aggregateHandle.UnsubscribeAsync();
+            #endregion
+
             _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
                 nameof(AggregateGrain), this.GetPrimaryKey(), reason);
         }
 
         [Rougamo<LoggingException>]
-        public async Task StartMeasurementAsync(int sample, int batchSize)
+        public async Task StartMeasurementAsync(Guid unitId, int sample, int batchSize)
         {
-            _isModified = true;
             State.Sample = sample;
             State.BatchSize = batchSize;
 
@@ -73,55 +93,15 @@ namespace Testly.Domain.Grains
                 _receivedMeasurement = torch.empty(sample, torch.ScalarType.Float32);
 
             State.ReceivedMeasurement = _receivedMeasurement.bytes.ToArray();
+            State.UnitId = unitId;
 
-            await this.RegisterOrUpdateReminder(nameof(AggregateState), TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(1));
-        }
-
-        public Task OnNextAsync(AggregateEvent item, StreamSequenceToken? token = null)
-        {
-            _isModified = true;
-            var time = Convert.ToSingle((item.ReceivedTime - item.SendingTime).TotalMilliseconds);
-            State.ReceivedSample++;
-
-            if (_receivedMeasurement is not null)
-                _receivedMeasurement[item.ReceivedIndex] = time;
-
-            if (State.StartTime > item.SendingTime)
-                State.StartTime = item.SendingTime;
-
-            if (State.EndTime < item.ReceivedTime)
-                State.EndTime = item.ReceivedTime;
-
-            State.LastPublish = DateTime.UtcNow;
-
-            return Task.CompletedTask;
-        }
-
-        public Task OnErrorAsync(Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected exception in AsyncStream {Name} from {GrainName} {GrainId}",
-                nameof(AggregateEvent), nameof(AggregateGrain), this.GetPrimaryKey());
-            return Task.CompletedTask;
-        }
-
-        [Rougamo<LoggingException>]
-        public async Task OnCompletedAsync()
-        {
-            await PublishAsync();
-            var reminder = await this.GetReminder(Constants.DefaultAggregateCompleteReminder);
-            if (reminder is not null)
-                await this.UnregisterReminder(reminder);
-
-            if (_receivedMeasurement is not null)
+            if (_streamProvider is not null)
             {
-                _receivedMeasurement.Dispose();
-                _receivedMeasurement = null;
+                _scalarStream = _streamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, unitId);
+                _summaryStream = _streamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, unitId);
             }
 
-            if (_subscriptionHandle is not null)
-                await _subscriptionHandle.UnsubscribeAsync();
-
-            await ClearStateAsync();
+            await this.RegisterOrUpdateReminder(nameof(AggregateState), TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(1));
         }
 
         public Task ReceiveReminder(string reminderName, TickStatus status)
@@ -161,10 +141,10 @@ namespace Testly.Domain.Grains
                 if (_receivedMeasurement is not null
                     && _summaryStream is not null)
                 {
-                    await PublishSummaryAsync(_summaryStream, _receivedMeasurement, 
+                    await PublishSummaryAsync(_summaryStream, _receivedMeasurement,
                         State.ReceivedSample, State.Sample,
                         State.StartTime, State.EndTime);
-                    await _summaryStream.OnCompletedAsync();   
+                    await _summaryStream.OnCompletedAsync();
                 }
             }
         }
@@ -176,6 +156,7 @@ namespace Testly.Domain.Grains
             var tempSlicedTensor = tensor[torch.TensorIndex.Slice(start, end)];
             var scalarEvent = new ScalarEvent
             {
+                AggregateId = this.GetPrimaryKey(),
                 Index = index,
                 Avg = torch.mean(tempSlicedTensor).item<float>(),
                 Min = torch.min(tempSlicedTensor).item<float>(),
@@ -187,8 +168,8 @@ namespace Testly.Domain.Grains
         }
 
         [Rougamo<LoggingException>]
-        private Task PublishSummaryAsync(IAsyncStream<SummaryEvent> summaryStream, torch.Tensor tensor, 
-            int receivedSample, int sample, 
+        private Task PublishSummaryAsync(IAsyncStream<SummaryEvent> summaryStream, torch.Tensor tensor,
+            int receivedSample, int sample,
             DateTime startTime, DateTime endTime)
         {
             var slicedTensor = tensor[torch.TensorIndex.Slice(0, receivedSample)];
@@ -196,6 +177,7 @@ namespace Testly.Domain.Grains
             {
                 StartTime = startTime,
                 EndTime = endTime,
+                AggregateId = this.GetPrimaryKey(),
                 Sample = sample,
                 ReceivedSample = receivedSample,
                 Avg = torch.mean(slicedTensor).item<float>(),
@@ -211,5 +193,5 @@ namespace Testly.Domain.Grains
             };
             return summaryStream.OnNextAsync(summaryEvent);
         }
-    }
+    } 
 }

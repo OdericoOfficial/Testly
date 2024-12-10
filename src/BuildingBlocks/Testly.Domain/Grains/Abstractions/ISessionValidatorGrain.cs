@@ -1,5 +1,4 @@
-﻿using Orleans.Streams;
-using Testly.Domain.Events.Abstractions;
+﻿using Testly.Domain.Events.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
@@ -7,8 +6,5 @@ namespace Testly.Domain.Grains.Abstractions
         where TSentEvent : struct, ISentEvent
         where TReceivedEvent : struct, IReceivedEvent
     {
-        Task OnSentEventReceivedAsync(TSentEvent sentEvent, StreamSequenceToken? sequenceToken = null);
-
-        Task OnReceivedEventReceivedAsync(TReceivedEvent receivedEvent, StreamSequenceToken? sequenceToken = null);
     }
 }

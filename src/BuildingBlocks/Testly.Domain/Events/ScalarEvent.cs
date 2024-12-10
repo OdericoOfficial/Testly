@@ -2,6 +2,8 @@
 {
     public record struct ScalarEvent
     {
+        public Guid AggregateId { get; init; }
+
         public int Index { get; init; }
 
         public float Avg { get; init; }

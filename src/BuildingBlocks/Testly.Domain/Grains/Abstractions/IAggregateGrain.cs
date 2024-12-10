@@ -2,6 +2,6 @@
 {
     public interface IAggregateGrain : IGrainWithGuidKey
     {
-        Task StartMeasurementAsync(int sample, int batchSize);
+        Task StartMeasurementAsync(Guid unitId, int sample, int batchSize);
     }
 }

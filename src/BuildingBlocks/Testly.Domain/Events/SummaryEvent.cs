@@ -6,6 +6,8 @@
 
         public DateTime EndTime { get; init; }
 
+        public Guid AggregateId { get; init; }
+
         public int Sample { get; init; }
 
         public int ReceivedSample { get; init; }
