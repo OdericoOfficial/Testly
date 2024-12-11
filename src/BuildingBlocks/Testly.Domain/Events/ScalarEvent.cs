@@ -1,8 +1,12 @@
-﻿namespace Testly.Domain.Events
+﻿using Testly.Domain.Events.Abstractions;
+
+namespace Testly.Domain.Events
 {
-    public record struct ScalarEvent
+    public record struct ScalarEvent : IDomainEvent
     {
-        public Guid AggregateId { get; init; }
+        public Guid PublisherId { get; init; }
+
+        public Guid SubscriberId { get; init; }
 
         public int Index { get; init; }
 

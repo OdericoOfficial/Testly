@@ -15,13 +15,12 @@ namespace Testly.Domain.Factories
             => _mapper = mapper;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public TReceivedEvent Create(TResponse response, TSentEvent sentEvent, DateTime receivedTime, int receivedIndex)
+        public TReceivedEvent Create(TResponse response, TSentEvent sentEvent, DateTime receivedTime)
             => _mapper.Map<TResponse, TReceivedEvent>(response) with
             {
                 ReceivedTime = receivedTime,
-                ReceivedIndex = receivedIndex,
-                AggregateId = sentEvent.AggregateId,
-                ValidatorId = sentEvent.ValidatorId
+                PublisherId = sentEvent.PublisherId,
+                SubscriberId = sentEvent.SubscriberId,
             };
     }
 }

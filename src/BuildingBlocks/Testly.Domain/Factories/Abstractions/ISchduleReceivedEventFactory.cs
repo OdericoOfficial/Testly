@@ -6,6 +6,6 @@ namespace Testly.Domain.Factories.Abstractions
         where TSentEvent : struct, ISentEvent
         where TReceivedEvent : struct, IReceivedEvent
     {
-        TReceivedEvent Create(TResponse response, TSentEvent sentEvent, DateTime receivedTime, int receivedIndex);
+        TReceivedEvent Create(TResponse response, TSentEvent sentEvent, DateTime receivedTime);
     }
 }

@@ -9,7 +9,6 @@
   <ItemGroup>
     <PackageReference Include="libtorch-cpu-win-x64" Version="2.4.0" />
     <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
-    <PackageReference Include="Microsoft.Orleans.BroadcastChannel" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="9.0.1" />

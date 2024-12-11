@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Mapster;
+﻿using Mapster;
 using MapsterMapper;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testly.Domain.Events.Abstractions;

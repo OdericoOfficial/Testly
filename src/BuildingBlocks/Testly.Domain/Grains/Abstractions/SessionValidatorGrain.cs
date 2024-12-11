@@ -1,100 +1,84 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Streams;
-using Rougamo;
-using Testly.AOP.Rougamo;
 using Testly.Domain.Events;
 using Testly.Domain.Events.Abstractions;
+using Testly.Domain.Observers.Abstractions;
 using Testly.Domain.States;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> : Grain<SessionState<TSentEvent, TReceivedEvent>>, ISessionValidatorGrain<TSentEvent, TReceivedEvent>
+    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> : SentValidatorGrain<TSentEvent, SessionState<TSentEvent, TReceivedEvent>>, 
+        IDomainEventAsyncObserver<TReceivedEvent>
         where TSentEvent : struct, ISentEvent
         where TReceivedEvent : struct, IReceivedEvent
     {
-        #region Field
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger _logger;
+        private readonly IAsyncObserver<TReceivedEvent> _observer;
+        
+        private StreamSubscriptionHandle<TReceivedEvent>? _subscriptionHandle;
 
-        private IStreamProvider? _streamProvider;
-
-        #region AsyncStream
-        private IAsyncStream<TSentEvent>? _sentStream;
-        private IAsyncStream<TReceivedEvent>? _receivedStream;
-        #endregion
-
-        #region AsyncObserver
-        private IAsyncObserver<TSentEvent>? _sentObserver;
-        private IAsyncObserver<TReceivedEvent>? _receivedObserver;
-        #endregion
-
-        #region SubscriptionHandle
-        private StreamSubscriptionHandle<TSentEvent>? _sentHandle;
-        private StreamSubscriptionHandle<TReceivedEvent>? _receivedHandle;
-        #endregion
-
-        private int _completedCount;
-        #endregion
-
-        protected SessionValidatorGrain(ILoggerFactory loggerFactory)
-        {
-            _logger = loggerFactory.CreateLogger(GetType());
-            _loggerFactory = loggerFactory;
-        }
-
-        [Rougamo<LoggingException>]
+        protected SessionValidatorGrain(IAsyncObserver<TSentEvent> sentObserver, IAsyncObserver<TReceivedEvent> receivedObserver,
+            ILogger logger) : base(sentObserver, logger)
+            => _observer = receivedObserver;
+        
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            DelayDeactivation(TimeSpan.FromMinutes(2));
-            _completedCount = State.CompletedCount;        
-            var validatorId = this.GetPrimaryKey();
-            _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
-
-            #region AsyncStream
-            _sentStream = _streamProvider.GetStream<TSentEvent>(Constants.DefaultSessionValidatorNamespace, validatorId);
-            _receivedStream = _streamProvider.GetStream<TReceivedEvent>(Constants.DefaultSessionValidatorNamespace, validatorId);
-            #endregion
-
-            #region AsyncObserver
-            _sentObserver = new SentEventObserver(this, _loggerFactory.CreateLogger<SentEventObserver>());
-            _receivedObserver = new ReceivedEventObserver(this, _loggerFactory.CreateLogger<ReceivedEventObserver>());
-            #endregion
-
-            #region SubscriptionHandle
-            _sentHandle = await _sentStream.SubscribeAsync(_sentObserver);
-            _receivedHandle = await _receivedStream.SubscribeAsync(_receivedObserver);
-            #endregion
-
+            await base.OnActivateAsync(cancellationToken);
+            
+            _subscriptionHandle = await _streamProvider.GetStream<TReceivedEvent>(Constants.DefaultSessionValidatorNamespace, this.GetPrimaryKey())
+                .SubscribeAsync(_observer);
         }
 
-        [Rougamo<LoggingException>]
         public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            _completedCount = 0;
-            await ClearStateAsync();
+            await _subscriptionHandle!.UnsubscribeAsync();
 
-            #region SubscriptionHandle
-            if (_sentHandle is not null)
-                await _sentHandle.UnsubscribeAsync();
-
-            if (_receivedHandle is not null)
-                await _receivedHandle.UnsubscribeAsync();
-            #endregion
-
-            _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
-                GetType().Name, this.GetPrimaryKey(), reason);
+            await base.OnDeactivateAsync(reason, cancellationToken);
         }
 
-        private async Task PublishAsync()
+        public override Task OnNextAsync(TSentEvent item)
         {
-            if (ValidateSession(State.SentEvent, State.ReceivedEvent))
+            switch (State.Process)
             {
-                var aggregateStream = _streamProvider.GetStream<AggregateEvent>(Constants.DefaultSessionValidatorNamespace, State.ReceivedEvent!.AggregateId);
-                await aggregateStream.OnNextAsync(new AggregateEvent
+                case SessionProcess.None:
+                    State.ApplyNoneToContainSentEvent(item);
+                    return Task.CompletedTask;
+                case SessionProcess.ContainReceivedEvent:
+                    State.ApplyContainReceivedEventToBothContained(item);
+                    return OnCompletedAsync();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        public Task OnNextAsync(TReceivedEvent item)
+        {
+            switch (State.Process)
+            {
+                case SessionProcess.None:
+                    State.ApplyNoneToContainReceivedEvent(item);
+                    return Task.CompletedTask;
+                case SessionProcess.ContainSentEvent:
+                    State.ApplyContainSentEventToBothContained(item);
+                    return OnCompletedAsync();
+            }
+            return Task.CompletedTask;
+        }
+
+        protected override async Task OnCompletedAsync()
+        {
+            if (_streamProvider != null
+                && State.Process == SessionProcess.BothContained
+                && ValidateSession(State.SentEvent, State.ReceivedEvent))
+            {
+                var aggregateStream = _streamProvider.GetStream<AggregateUnitEvent>(Constants.DefaultAggregateNamespace, 
+                    State.ReceivedEvent.PublisherId);
+
+                await aggregateStream.OnNextAsync(new AggregateUnitEvent
                 {
-                    SendingTime = State.SentEvent.SendingTime,
-                    ReceivedTime = State.ReceivedEvent.ReceivedTime,
-                    ReceivedIndex = State.ReceivedEvent.ReceivedIndex
+                    StartTime = State.SentEvent.SendingTime,
+                    EndTime = State.ReceivedEvent.ReceivedTime,
+                    PublisherId = this.GetPrimaryKey(),
+                    SubscriberId = State.ReceivedEvent.PublisherId
                 });
             }
         }

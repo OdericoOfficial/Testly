@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.Reflection", "src\Bu
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.AOP", "src\BuildingBlocks\Testly.AOP\Testly.AOP.csproj", "{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Testly.DependencyInjection.Tests", "test\Testly.DependencyInjection.Tests\Testly.DependencyInjection.Tests.csproj", "{3A955B1E-83B4-4D60-BA4B-961BAF39F65D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -77,6 +79,10 @@ Global
 		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3A955B1E-83B4-4D60-BA4B-961BAF39F65D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3A955B1E-83B4-4D60-BA4B-961BAF39F65D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3A955B1E-83B4-4D60-BA4B-961BAF39F65D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3A955B1E-83B4-4D60-BA4B-961BAF39F65D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,5 +100,6 @@ Global
 		{9729DCEA-94A7-4D3E-BC7A-FD19107EC387} = {873D9642-167B-4EAE-9480-BFB89ED8FCCA}
 		{6A2B50C2-442A-4CE2-AB62-F8979B0814D0} = {DFD5295D-6981-4D6B-846E-661CDAF95A69}
 		{8FF9A651-4C2F-43AC-AAA7-AAE83F761E86} = {DFD5295D-6981-4D6B-846E-661CDAF95A69}
+		{3A955B1E-83B4-4D60-BA4B-961BAF39F65D} = {CB892A00-46D2-491F-883B-5D6BB165385B}
 	EndGlobalSection
 EndGlobal

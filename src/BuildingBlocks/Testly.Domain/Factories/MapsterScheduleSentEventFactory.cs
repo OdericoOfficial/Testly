@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using MapsterMapper;
+﻿using MapsterMapper;
 using Testly.Domain.Events.Abstractions;
 using Testly.Domain.Factories.Abstractions;
 
@@ -9,7 +8,7 @@ namespace Testly.Domain.Factories
         where TSentEvent : struct, ISentEvent
     {
         private readonly IMapper _mapper;
-        private readonly IGuidFactory _guidFactory;  
+        private readonly IGuidFactory _guidFactory;
 
         public MapsterScheduleSentEventFactory(IMapper mapper, IGuidFactory guidFactory)
         {
@@ -17,14 +16,13 @@ namespace Testly.Domain.Factories
             _guidFactory = guidFactory;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public async ValueTask<TSentEvent> CreateAsync(TRequest request, (DateTime SendingTime, DateTime SentTime) tuple, Guid aggregateId)
+        public async ValueTask<TSentEvent> CreateAsync(TRequest request, (DateTime SendingTime, DateTime SentTime) tuple, Guid unitId)
             => _mapper.Map<TRequest, TSentEvent>(request) with
             {
-
+                SendingTime = tuple.SendingTime,
                 SentTime = tuple.SentTime,
-                AggregateId = aggregateId,
-                ValidatorId = await _guidFactory.NextAsync()
+                PublisherId = unitId,
+                SubscriberId = await _guidFactory.NextAsync()
             };
     }
 }

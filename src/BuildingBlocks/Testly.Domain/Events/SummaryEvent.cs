@@ -1,12 +1,16 @@
-﻿namespace Testly.Domain.Events
+﻿using Testly.Domain.Events.Abstractions;
+
+namespace Testly.Domain.Events
 {
-    public record struct SummaryEvent
+    public record struct SummaryEvent : IDomainEvent
     {
+        public Guid PublisherId { get; init; }
+
+        public Guid SubscriberId { get; init; }
+
         public DateTime StartTime { get; init; }
 
         public DateTime EndTime { get; init; }
-
-        public Guid AggregateId { get; init; }
 
         public int Sample { get; init; }
 

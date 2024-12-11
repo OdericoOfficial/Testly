@@ -6,9 +6,11 @@
 
         public const string DefaultSessionValidatorNamespace = "SessionValidator";
 
-        public const string DefaultAggregateNamespace = "Aggregate";
+        public const string DefaultAggregateUnitNamespace = "AggregateUnit";
 
-        public const string DefaultAggregateCompleteReminder = "Completed";
+        public const string DefaultAggregateUnitCancelNamespace = "AggregateCancel";
+
+        public const string DefaultAggregateCompletedReminder = "AggregateCompletedReminder";
 
         public const string DefaultScalarNamespace = "Scalar";
 

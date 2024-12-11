@@ -1,21 +1,46 @@
 ﻿using Testly.Domain.Commands.Abstractions;
-using Testly.Domain.Events;
 
 namespace Testly.Domain.States
 {
+    public enum ScheduleUnitProcess : int
+    {
+        None = 0b_000,
+        Running = 0b_001,
+        Finished = 0b_010,
+        Cancelled = 0b_100
+    }
+
     public class ScheduleUnitState<TCommand>
         where TCommand : struct, IModifyUnitCommand
     {
-        public TCommand Command { get; set; }
+        public DateTime StartTime { get; private set; }
 
-        public SummaryEvent Summary { get; set; }
+        public DateTime EndTime { get; private set; }
 
-        public List<ScalarEvent> Scalars { get; set; } = []; 
+        public TCommand Command { get; private set; }
 
-        public Guid CurrentAggregateId { get; set; }
+        public ScheduleUnitProcess Process { get; private set; }
 
-        public int CompletedCount { get; set; }
+        public void ApplyExecute()
+        {
+            StartTime = default;
+            EndTime = default;
+            Process = ScheduleUnitProcess.Running;
+        }
 
-        public int Process { get; set; }
+        public void ApplyModify(TCommand item)
+        {
+            Command = item;
+            StartTime = default;
+            EndTime = default;
+            Process = ScheduleUnitProcess.None;
+        }
+
+        public void ApplyCancel()
+        {
+            StartTime = default;
+            EndTime = default;
+            Process = ScheduleUnitProcess.Cancelled;
+        }
     }
 }
