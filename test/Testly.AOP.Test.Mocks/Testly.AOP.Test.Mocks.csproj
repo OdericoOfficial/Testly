@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\BuildingBlocks\Testly.AOP\Testly.AOP.csproj" />
+    <ProjectReference Include="..\..\src\BuildingBlocks\Testly.DependencyInjection\Testly.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>

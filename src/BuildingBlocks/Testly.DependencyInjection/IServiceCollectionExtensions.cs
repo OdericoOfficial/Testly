@@ -6,10 +6,9 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class IServiceCollectionExtensions
     {
-        public static IServiceCollection AddRegisteredService(this IServiceCollection services)
+        public static IServiceCollection AddRegisteredService(this IServiceCollection services, Assembly assembly)
         {
-            foreach (var type in AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(assembly => assembly.GetTypes()))
+            foreach (var type in assembly.GetTypes())
             {
                 var attribute = type.GetCustomAttribute<ServiceAttribute>();
                 if (attribute is not null)

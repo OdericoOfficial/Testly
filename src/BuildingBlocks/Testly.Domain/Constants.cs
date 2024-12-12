@@ -16,6 +16,8 @@
 
         public const string DefaultSummaryNamespcace = "Summary";
 
+        public const string DefaultStorageCompletedNamespace = "StorageCompleted";
+
         public const string DefaultSchduleUnitCompletedNamespace = "SchduleUnitCompleted";
 
         public const string DefaultSchduleLayerCompletedNamesapce = "ScheduleLayerCompleted";

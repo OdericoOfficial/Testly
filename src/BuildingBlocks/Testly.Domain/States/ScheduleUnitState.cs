@@ -13,9 +13,7 @@ namespace Testly.Domain.States
     public class ScheduleUnitState<TCommand>
         where TCommand : struct, IModifyUnitCommand
     {
-        public DateTime StartTime { get; private set; }
-
-        public DateTime EndTime { get; private set; }
+        public DateTime CompletedTime { get; private set; }
 
         public TCommand Command { get; private set; }
 
@@ -23,24 +21,27 @@ namespace Testly.Domain.States
 
         public void ApplyExecute()
         {
-            StartTime = default;
-            EndTime = default;
+            CompletedTime = default;
             Process = ScheduleUnitProcess.Running;
         }
 
         public void ApplyModify(TCommand item)
         {
             Command = item;
-            StartTime = default;
-            EndTime = default;
+            CompletedTime = default;
             Process = ScheduleUnitProcess.None;
         }
 
         public void ApplyCancel()
         {
-            StartTime = default;
-            EndTime = default;
+            CompletedTime = default;
             Process = ScheduleUnitProcess.Cancelled;
+        }
+
+        public void ApplyComplete(DateTime completedTime)
+        {
+            Process = ScheduleUnitProcess.Finished;
+            CompletedTime = completedTime;
         }
     }
 }

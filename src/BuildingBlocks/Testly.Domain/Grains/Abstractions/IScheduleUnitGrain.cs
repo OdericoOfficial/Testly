@@ -8,7 +8,5 @@ namespace Testly.Domain.Grains.Abstractions
         Task ModifyAsync(TCommand command);
 
         Task ClearAsync();
-
-        Task ExecuteAsync();
     }
 }

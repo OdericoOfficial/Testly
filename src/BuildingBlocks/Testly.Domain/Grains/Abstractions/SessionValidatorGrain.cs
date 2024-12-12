@@ -13,7 +13,6 @@ namespace Testly.Domain.Grains.Abstractions
         where TReceivedEvent : struct, IReceivedEvent
     {
         private readonly IAsyncObserver<TReceivedEvent> _observer;
-        
         private StreamSubscriptionHandle<TReceivedEvent>? _subscriptionHandle;
 
         protected SessionValidatorGrain(IAsyncObserver<TSentEvent> sentObserver, IAsyncObserver<TReceivedEvent> receivedObserver,
@@ -35,33 +34,32 @@ namespace Testly.Domain.Grains.Abstractions
             await base.OnDeactivateAsync(reason, cancellationToken);
         }
 
-        public override Task OnNextAsync(TSentEvent item)
+        public override async Task OnNextAsync(TSentEvent item)
         {
             switch (State.Process)
             {
                 case SessionProcess.None:
                     State.ApplyNoneToContainSentEvent(item);
-                    return Task.CompletedTask;
+                    break;
                 case SessionProcess.ContainReceivedEvent:
                     State.ApplyContainReceivedEventToBothContained(item);
-                    return OnCompletedAsync();
+                    await OnCompletedAsync();
+                    break;
             }
-
-            return Task.CompletedTask;
         }
 
-        public Task OnNextAsync(TReceivedEvent item)
+        public async Task OnNextAsync(TReceivedEvent item)
         {
             switch (State.Process)
             {
                 case SessionProcess.None:
                     State.ApplyNoneToContainReceivedEvent(item);
-                    return Task.CompletedTask;
+                    break;
                 case SessionProcess.ContainSentEvent:
                     State.ApplyContainSentEventToBothContained(item);
-                    return OnCompletedAsync();
+                    await OnCompletedAsync();
+                    break;
             }
-            return Task.CompletedTask;
         }
 
         protected override async Task OnCompletedAsync()
@@ -70,7 +68,7 @@ namespace Testly.Domain.Grains.Abstractions
                 && State.Process == SessionProcess.BothContained
                 && ValidateSession(State.SentEvent, State.ReceivedEvent))
             {
-                var aggregateStream = _streamProvider.GetStream<AggregateUnitEvent>(Constants.DefaultAggregateNamespace, 
+                var aggregateStream = _streamProvider.GetStream<AggregateUnitEvent>(Constants.DefaultAggregateUnitNamespace, 
                     State.ReceivedEvent.PublisherId);
 
                 await aggregateStream.OnNextAsync(new AggregateUnitEvent
