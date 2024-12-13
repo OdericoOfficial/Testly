@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.Events
 {
-    public record struct AggregateUnitEvent : IDomainEvent
+    public record AggregateUnitEvent : IDomainEvent
     {
         public DateTime StartTime { get; init; }
 

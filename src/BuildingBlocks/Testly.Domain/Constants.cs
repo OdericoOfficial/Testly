@@ -2,7 +2,9 @@
 {
     public static class Constants
     {
-        public const string DefaultStreamProvider = "Default";
+        public const string DefaultStreamProvider = "DefaultStreamProvider";
+
+        public const string DefaultStorageName = "DefaultStorage";
 
         public const string DefaultSessionValidatorNamespace = "SessionValidator";
 
@@ -16,14 +18,10 @@
 
         public const string DefaultSummaryNamespcace = "Summary";
 
-        public const string DefaultStorageCompletedNamespace = "StorageCompleted";
+        public const string DefaultNodeCompletedNamespace = "NodeCompleted";
 
-        public const string DefaultSchduleUnitCompletedNamespace = "SchduleUnitCompleted";
+        public const string DefaultNodeCancelNamesapce = "NodeCancel";
 
-        public const string DefaultSchduleLayerCompletedNamesapce = "ScheduleLayerCompleted";
-
-        public const string DefaultScheduleUnitCancelNamesapce = "ScheduleUnitCancel";
-
-        public const string DefaultScheduleUnitExecuteEvent = "ScheduleUnitExecute";
+        public const string DefaultNodeExecuteEvent = "NodeExecute";
     }
 }

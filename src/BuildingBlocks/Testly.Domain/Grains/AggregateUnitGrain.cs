@@ -1,86 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
-using Orleans.Streams;
+﻿using Orleans.Streams;
 using Rougamo;
 using Testly.AOP.Rougamo;
 using Testly.Domain.Events;
-using Testly.Domain.Factories.Abstractions;
-using Testly.Domain.Grains.Abstractions;
-using Testly.Domain.Observers.Abstractions;
-using Testly.Domain.States;
+using Testly.Domain.States.Abstractions;
 using TorchSharp;
 
 namespace Testly.Domain.Grains
-{
-    [ImplicitStreamSubscription(Constants.DefaultAggregateUnitNamespace)]
-    [ImplicitStreamSubscription(Constants.DefaultAggregateUnitCancelNamespace)]
-    internal sealed class AggregateUnitGrain : Grain<AggregateUnitState>, IAggregateUnitGrain, IDomainEventAsyncObserver<AggregateUnitEvent>,
-        IDomainEventAsyncObserver<AggregateUnitCancelEvent>, IRemindable
+{ 
+    internal sealed partial class AggregateUnitGrain
     {
-        private readonly ILogger _logger;
-        private readonly IGuidFactory _factory;
-        private readonly IAsyncObserver<AggregateUnitEvent> _unitObserver;
-        private readonly IAsyncObserver<AggregateUnitCancelEvent> _cancelObserver;
-        private IStreamProvider? _streamProvider;
-        private IAsyncStream<AggregateUnitEvent>? _aggregateStream;
-        private IAsyncStream<AggregateUnitCancelEvent>? _cancelStream;
-        private StreamSubscriptionHandle<AggregateUnitEvent>? _unitHandle;
-        private StreamSubscriptionHandle<AggregateUnitCancelEvent>? _cancelHandle;
-        private torch.Tensor? _receivedMeasurement;
-        
-        public AggregateUnitGrain(ILogger<AggregateUnitGrain> logger, IGuidFactory factory, IAsyncObserver<AggregateUnitEvent> unitObserver, IAsyncObserver<AggregateUnitCancelEvent> cancelObserver)
-        {
-            _logger = logger;
-            _factory = factory;
-            _unitObserver = unitObserver;
-            _cancelObserver = cancelObserver;
-        }
-
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
-        [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
-        public override async Task OnActivateAsync(CancellationToken cancellationToken)
-        {
-            if (State.Process == AggregateUnitProcess.Running)
-            {
-                var unitId = this.GetPrimaryKey();
-                _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
-                _receivedMeasurement = torch.frombuffer(State.ReceivedMeasurement!, torch.ScalarType.Float32);
-                _aggregateStream = _streamProvider.GetStream<AggregateUnitEvent>(Constants.DefaultAggregateUnitNamespace, unitId);
-                _cancelStream = _streamProvider.GetStream<AggregateUnitCancelEvent>(Constants.DefaultAggregateUnitCancelNamespace, unitId);
-                _unitHandle = await _aggregateStream.SubscribeAsync(_unitObserver);
-                _cancelHandle = await _cancelStream.SubscribeAsync(_cancelObserver);
-            }
-        }
-
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
-        [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
-        public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
-        {
-            if (State.Process == AggregateUnitProcess.Running)
-            {
-                State.ApplyRent(_receivedMeasurement!);
-                _receivedMeasurement!.bytes.CopyTo(State.ReceivedMeasurement);
-                await WriteStateAsync();
-                State.ApplyReturn();
-
-                _receivedMeasurement.Dispose();
-                _receivedMeasurement = null;
-
-                await _unitHandle!.UnsubscribeAsync();
-                await _cancelHandle!.UnsubscribeAsync();
-            }
-            else if (State.Process != AggregateUnitProcess.None)
-                await ClearStateAsync();
-            
-            _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
-                nameof(AggregateUnitGrain), this.GetPrimaryKey(), reason);
-        }
-
 #if !ROUGAMO_VERSION_5_0_0_OR_GREATER
         [Rougamo<LoggingException>]
 #else
@@ -88,28 +16,20 @@ namespace Testly.Domain.Grains
 #endif
         public async Task ExecuteAsync(int sample, int batchSize)
         {
-            if (State.Process != AggregateUnitProcess.Running)
+            if (State.CurrentState != ScheduledNodeState.Executing)
             {
-                var unitId = this.GetPrimaryKey();
-                _receivedMeasurement = torch.empty(sample, torch.ScalarType.Float32);
+                await this.RegisterOrUpdateReminder(Constants.DefaultAggregateCompletedReminder,
+                    TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(1));
                 State.ApplyExecute(sample, batchSize);
-
-                _streamProvider = this.GetStreamProvider(Constants.DefaultStreamProvider);
-                _aggregateStream = _streamProvider.GetStream<AggregateUnitEvent>(Constants.DefaultAggregateUnitNamespace, unitId);
-                _cancelStream = _streamProvider.GetStream<AggregateUnitCancelEvent>(Constants.DefaultAggregateUnitCancelNamespace, unitId);
-                _unitHandle = await _aggregateStream.SubscribeAsync(_unitObserver);
-                _cancelHandle = await _cancelStream.SubscribeAsync(_cancelObserver);
-
-                await this.RegisterOrUpdateReminder(Constants.DefaultAggregateCompletedReminder, TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(1));
             }
         }
 
         public Task OnNextAsync(AggregateUnitEvent item)
         {
-            if (State.Process == AggregateUnitProcess.Running)
+            if (State.CurrentState == ScheduledNodeState.Executing)
             {
                 var time = Convert.ToSingle((item.EndTime - item.StartTime).TotalMilliseconds);
-                _receivedMeasurement![State.ReceivedSample] = time;
+                ReceivedMeasurement[State.ReceivedSample] = time;
                 State.ApplyNext(item);
             }
 
@@ -123,21 +43,12 @@ namespace Testly.Domain.Grains
 #endif
         public async Task OnNextAsync(AggregateUnitCancelEvent item)
         {
-            if (State.Process == AggregateUnitProcess.Running)
+            if (State.CurrentState == ScheduledNodeState.Executing)
             {
-                State.ApplyCancel();
-
                 var reminder = await this.GetReminder(Constants.DefaultAggregateCompletedReminder);
                 if (reminder is not null)
                     await this.UnregisterReminder(reminder);
-
-                _receivedMeasurement!.Dispose();
-                _receivedMeasurement = null;
-                
-                await _unitHandle!.UnsubscribeAsync();
-                await _cancelHandle!.UnsubscribeAsync();
-                
-                await WriteStateAsync();
+                State.ApplyCancelled();
             }
         }
 
@@ -145,7 +56,7 @@ namespace Testly.Domain.Grains
         {
             if (reminderName == Constants.DefaultAggregateCompletedReminder
                 && (DateTime.UtcNow - State.LastPublish) > TimeSpan.FromMinutes(2)
-                && State.Process == AggregateUnitProcess.Running)
+                && State.CurrentState == ScheduledNodeState.Executing)
                 await OnCompletedAsync();
         }
 
@@ -158,19 +69,11 @@ namespace Testly.Domain.Grains
         {
             await PublishAsync();
 
-            State.ApplyCompleted();
-
             var reminder = await this.GetReminder(Constants.DefaultAggregateCompletedReminder);
             if (reminder is not null)
                 await this.UnregisterReminder(reminder);
 
-            _receivedMeasurement!.Dispose();
-            _receivedMeasurement = null;
-
-            await _unitHandle!.UnsubscribeAsync();
-            await _cancelHandle!.UnsubscribeAsync();
-
-            await WriteStateAsync();
+            State.ApplyCompleted();
         }
 
         private async Task PublishAsync()
@@ -179,34 +82,32 @@ namespace Testly.Domain.Grains
             {
                 var start = 0;
                 var end = 0;
-                var unitId = this.GetPrimaryKey();
                 var storageId = await _factory.NextAsync();
-                var scalarStream = _streamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, storageId);
+                var scalarStream = StreamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, storageId);
 
                 while (end < State.ReceivedSample)
                 {
                     end = end + State.BatchSize < State.ReceivedSample ? end + State.BatchSize : State.ReceivedSample;
 
-                    if (_receivedMeasurement is not null)
-                        await PublishScalarAsync(scalarStream!, _receivedMeasurement,
-                            unitId, storageId, start / State.BatchSize, start, end);
+                    await PublishScalarAsync(scalarStream, storageId, 
+                        start / State.BatchSize, start, end);
 
                     start += State.BatchSize;
                 }
 
-                var summaryStream = _streamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, storageId);
-                await PublishSummaryAsync(summaryStream!, _receivedMeasurement!,
-                    unitId, storageId, State.ReceivedSample, State.Sample, State.StartTime, State.EndTime);
+                var summaryStream = StreamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, storageId);
+                await PublishSummaryAsync(summaryStream, storageId, 
+                    State.ReceivedSample, State.Sample, State.StartTime, State.EndTime);
             }
         }
 
-        private Task PublishScalarAsync(IAsyncStream<ScalarEvent> scalarStream, torch.Tensor tensor,
-            Guid unitId, Guid storageId, int index, int start, int end)
+        private Task PublishScalarAsync(IAsyncStream<ScalarEvent> scalarStream, Guid storageId, 
+            int index, int start, int end)
         {
-            var tempSlicedTensor = tensor[torch.TensorIndex.Slice(start, end)];
+            var tempSlicedTensor = ReceivedMeasurement[torch.TensorIndex.Slice(start, end)];
             var scalarEvent = new ScalarEvent
             {
-                PublisherId = unitId,
+                PublisherId = UnitId,
                 SubscriberId = storageId,
                 Index = index,
                 Avg = torch.mean(tempSlicedTensor).item<float>(),
@@ -218,13 +119,13 @@ namespace Testly.Domain.Grains
             return scalarStream.OnNextAsync(scalarEvent);
         }
 
-        private Task PublishSummaryAsync(IAsyncStream<SummaryEvent> summaryStream, torch.Tensor tensor,
-            Guid unitId, Guid storageId, int receivedSample, int sample, DateTime startTime, DateTime endTime)
+        private Task PublishSummaryAsync(IAsyncStream<SummaryEvent> summaryStream, Guid storageId, 
+            int receivedSample, int sample, DateTime startTime, DateTime endTime)
         {
-            var slicedTensor = tensor[torch.TensorIndex.Slice(0, receivedSample)];
+            var slicedTensor = ReceivedMeasurement[torch.TensorIndex.Slice(0, receivedSample)];
             var summaryEvent = new SummaryEvent
             {
-                PublisherId = unitId,
+                PublisherId = UnitId,
                 SubscriberId = storageId,
                 StartTime = startTime,
                 EndTime = endTime,

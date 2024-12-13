@@ -1,17 +1,10 @@
 ﻿using System.Buffers;
 using Testly.Domain.Events;
+using Testly.Domain.States.Abstractions;
 using TorchSharp;
 
 namespace Testly.Domain.States
 {
-    public enum AggregateUnitProcess : int
-    {
-        None = 0b_000,
-        Running = 0b_001,
-        Finished = 0b_010,
-        Cancelled = 0b_100
-    }
-
     public class AggregateUnitState
     {
         public DateTime StartTime { get; private set; }
@@ -20,7 +13,7 @@ namespace Testly.Domain.States
 
         public DateTime LastPublish { get; private set; }
 
-        public AggregateUnitProcess Process { get; private set; } = AggregateUnitProcess.None;
+        public ScheduledNodeState CurrentState { get; private set; } = ScheduledNodeState.None;
 
         public int Sample { get; private set; }
 
@@ -35,7 +28,7 @@ namespace Testly.Domain.States
             StartTime = default;
             EndTime = default;
             LastPublish = default;
-            Process = AggregateUnitProcess.Running;
+            CurrentState = ScheduledNodeState.Executing;
             Sample = sample;
             BatchSize = batchSize;
             ReceivedSample = 0;
@@ -60,19 +53,19 @@ namespace Testly.Domain.States
             StartTime = default;
             EndTime = default;
             LastPublish = default;
-            Process = AggregateUnitProcess.Finished;
+            CurrentState = ScheduledNodeState.Completed;
             Sample = 0;
             BatchSize = 0;
             ReceivedSample = 0;
             ReceivedMeasurement = null;
         }
 
-        public void ApplyCancel()
+        public void ApplyCancelled()
         {
             StartTime = default;
             EndTime = default;
             LastPublish = default;
-            Process = AggregateUnitProcess.Cancelled;
+            CurrentState = ScheduledNodeState.Cancelled;
             Sample = 0;
             BatchSize = 0;
             ReceivedSample = 0;

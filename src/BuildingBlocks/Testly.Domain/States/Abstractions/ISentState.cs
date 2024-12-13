@@ -7,7 +7,7 @@ namespace Testly.Domain.States.Abstractions
     {
         TSentEvent SentEvent { get; }
 
-        SessionProcess Process { get; }
+        byte ContainState { get; }
 
         void ApplyNoneToContainSentEvent(TSentEvent item);
     }

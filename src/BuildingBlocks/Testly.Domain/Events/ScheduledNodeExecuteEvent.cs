@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.Events
 {
-    public record struct ScheduleLayerCancelEvent : IDomainEvent
+    public record ScheduledNodeExecuteEvent : IDomainEvent
     {
         public Guid PublisherId { get; init; }
 
