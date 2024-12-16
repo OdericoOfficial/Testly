@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+	<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,7 +20,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Testly.AOP\Testly.AOP.csproj" />
-    <ProjectReference Include="..\Testly.DependencyInjection\Testly.DependencyInjection.csproj" />
+    <ProjectReference Include="..\Testly.Domain.Analyzers\Testly.Domain.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Testly.Domain.Attributes\Testly.Domain.Attributes.csproj" />
   </ItemGroup>
 
 </Project>

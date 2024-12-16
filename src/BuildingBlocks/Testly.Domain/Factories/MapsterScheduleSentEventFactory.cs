@@ -5,7 +5,7 @@ using Testly.Domain.Factories.Abstractions;
 namespace Testly.Domain.Factories
 {
     internal class MapsterScheduleSentEventFactory<TSentEvent, TRequest> : ISchduleSentEventFactory<TSentEvent, TRequest>
-        where TSentEvent : struct, ISentEvent
+        where TSentEvent : SentEvent
     {
         private readonly IMapper _mapper;
         private readonly IGuidFactory _guidFactory;

@@ -2,12 +2,8 @@
 
 namespace Testly.Domain.Events
 {
-    public record ScalarEvent : IDomainEvent
+    public record ScalarEvent : DomainEvent
     {
-        public Guid PublisherId { get; init; }
-
-        public Guid SubscriberId { get; init; }
-
         public int Index { get; init; }
 
         public float Avg { get; init; }

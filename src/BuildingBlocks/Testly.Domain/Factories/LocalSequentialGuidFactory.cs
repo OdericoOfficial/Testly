@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Microsoft.Extensions.DependencyInjection;
 using Testly.Domain.Factories.Abstractions;
 
 namespace Testly.Domain.Factories
 {
+    [Singleton<IGuidFactory>]
     internal class LocalSequentialGuidFactory : IGuidFactory
     {
         private long _counter = DateTime.UtcNow.Ticks;

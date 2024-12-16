@@ -9,8 +9,7 @@ using static Testly.Domain.Grains.NullSetter;
 
 namespace Testly.Domain.Grains
 {
-    [ImplicitStreamSubscription(Constants.DefaultScalarNamespace)]
-    [ImplicitStreamSubscription(Constants.DefaultSummaryNamespcace)]
+    [ImplicitStreamSubscription]
     internal partial class StorageUnitGrain : Grain, 
         IDomainEventAsyncObserver<ScalarEvent>, 
         IDomainEventAsyncObserver<SummaryEvent>,
@@ -38,7 +37,7 @@ namespace Testly.Domain.Grains
             => _storageId ??= this.GetPrimaryKey();
 
         private IStreamProvider StreamProvider
-            => _streamProvider ??= this.GetStreamProvider(Constants.DefaultStreamProvider);
+            => _streamProvider ??= this.GetStreamProvider(nameof(Stream));
 
         private IAsyncStream<ScalarEvent> ScalarStream
             => _scalarStream ??= StreamProvider.GetStream<ScalarEvent>(StorageId);

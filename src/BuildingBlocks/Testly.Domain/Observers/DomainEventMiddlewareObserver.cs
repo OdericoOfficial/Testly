@@ -6,7 +6,7 @@ using Testly.Domain.Observers.Abstractions;
 namespace Testly.Domain.Observers
 {
     internal class DomainEventMiddlewareObserver<TDomainEvent> : IAsyncObserver<TDomainEvent>
-        where TDomainEvent : IDomainEvent
+        where TDomainEvent : DomainEvent
     {
         private readonly ILogger<DomainEventMiddlewareObserver<TDomainEvent>> _logger;
         private readonly IClusterClient _clusterClient;

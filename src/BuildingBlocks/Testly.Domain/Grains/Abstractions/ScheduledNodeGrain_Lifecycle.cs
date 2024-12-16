@@ -2,6 +2,7 @@
 using Orleans.Streams;
 using Rougamo;
 using Testly.AOP.Rougamo;
+using Testly.Domain.Attributes;
 using Testly.Domain.Commands.Abstractions;
 using Testly.Domain.Events;
 using Testly.Domain.Observers.Abstractions;
@@ -11,12 +12,12 @@ using static Testly.Domain.Grains.NullSetter;
 namespace Testly.Domain.Grains.Abstractions
 {
     public abstract partial class ScheduledNodeGrain<TCommand, TScheduledState> : Grain<TScheduledState>,
-        IScheduledNodeGrain<TCommand>,
+        ICommandAsyncHandler<TCommand>,
         IDomainEventAsyncObserver<ScheduledNodeExecuteEvent>,
         IDomainEventAsyncObserver<ScheduledNodeCompletedEvent>,
         IDomainEventAsyncObserver<ScheduledNodeCancelEvent>
-        where TCommand : IModifyNodeCommand
-        where TScheduledState : IScheduledNodeState<TCommand>
+        where TCommand : ModifyScheduledNodeCommand
+        where TScheduledState : ScheduledNodeState<TCommand>
     {
         protected readonly ILogger _logger;
         
@@ -37,7 +38,7 @@ namespace Testly.Domain.Grains.Abstractions
             => _nodeId ??= this.GetPrimaryKey();
 
         protected IStreamProvider StreamProvider
-            => _streamProvider ??= this.GetStreamProvider(Constants.DefaultStreamProvider);
+            => _streamProvider ??= this.GetStreamProvider(nameof(Stream));
 
         private IAsyncStream<ScheduledNodeExecuteEvent> NodeExecuteStream
             => _nodeExecuteStream ??= StreamProvider.GetStream<ScheduledNodeExecuteEvent>(NodeId);
@@ -85,7 +86,7 @@ namespace Testly.Domain.Grains.Abstractions
 #endif
         public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            if (State.CurrentState != ScheduledNodeState.None)
+            if (State.CurrentState != ScheduledNodeCurrentState.None)
                 await WriteStateAsync();
 
             await UnsubscribeSetNullAsync(ref _nodeCompletedHandle);

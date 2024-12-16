@@ -1,10 +1,39 @@
-﻿namespace Testly.Domain.States.Abstractions
+﻿using Testly.Domain.Commands.Abstractions;
+
+namespace Testly.Domain.States.Abstractions
 {
-    public enum ScheduledNodeState : byte
+    public abstract class ScheduledNodeState<TCommand>
+        where TCommand : ModifyScheduledNodeCommand
     {
-        None = 0b_000,
-        Executing = 0b_001,
-        Completed = 0b_010,
-        Cancelled = 0b_100
+        public DateTime CompletedTime { get; protected set; }
+
+        public TCommand? Command { get; protected set; }
+
+        public ScheduledNodeCurrentState CurrentState { get; protected set; }
+
+        public virtual void ApplyExecute()
+        {
+            CompletedTime = default;
+            CurrentState = ScheduledNodeCurrentState.Executing;
+        }
+
+        public virtual void ApplyModify(TCommand item)
+        {
+            Command = item;
+            CompletedTime = default;
+            CurrentState = ScheduledNodeCurrentState.None;
+        }
+
+        public virtual void ApplyCancelled()
+        {
+            CompletedTime = default;
+            CurrentState = ScheduledNodeCurrentState.Cancelled;
+        }
+
+        public virtual void ApplyCompleted()
+        {
+            CompletedTime = DateTime.UtcNow;
+            CurrentState = ScheduledNodeCurrentState.Completed;
+        }
     }
 }

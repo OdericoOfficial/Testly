@@ -3,7 +3,7 @@
 namespace Testly.Domain.Factories.Abstractions
 {
     public interface IScheduleSessionFactory<TRequest, TCommand>
-        where TCommand : IModifyUnitCommand
+        where TCommand : ModifyScheduledUnitCommand
     {
         TRequest Create(TCommand command, Guid unitId);
 

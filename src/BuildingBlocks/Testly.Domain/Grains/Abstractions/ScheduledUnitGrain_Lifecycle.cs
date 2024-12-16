@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Orleans.Streams;
+using Testly.Domain.Attributes;
 using Testly.Domain.Commands.Abstractions;
 using Testly.Domain.Events;
 using Testly.Domain.Events.Abstractions;
@@ -8,17 +9,20 @@ using Testly.Domain.States;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class ScheduledUnitGrain<TSentEvent, TRequest, TCommand> : ScheduledNodeGrain<TCommand, ScheduledUnitState<TCommand>>, 
-        IScheduledUnitGrain<TCommand>
-        where TSentEvent : ISentEvent
-        where TCommand : IModifyUnitCommand
+    public abstract partial class ScheduledUnitGrain<TSentEvent, TRequest, TCommand> : ScheduledNodeGrain<TCommand, ScheduledUnitState<TCommand>> 
+        where TSentEvent : SentEvent
+        where TCommand : ModifyScheduledUnitCommand
     {
         private readonly IScheduleSessionFactory<TRequest, TCommand> _sessionFactory;
         private readonly ISchduleSentEventFactory<TSentEvent, TRequest> _sentFactory;
-        private IAsyncStream<AggregateUnitCancelEvent>? _aggregateUnitCancelStream;
+        private IAsyncStream<MeasurementUnitModifyEvent>? _measurementUnitModifyStream;
+        private IAsyncStream<MeasurementUnitCancelEvent>? _measurementUnitCancelStream;
 
-        private IAsyncStream<AggregateUnitCancelEvent> AggregateUnitCancelStream
-            => _aggregateUnitCancelStream ??= StreamProvider.GetStream<AggregateUnitCancelEvent>(NodeId);
+        private IAsyncStream<MeasurementUnitModifyEvent> MeasurementUnitModifyStream
+            => _measurementUnitModifyStream ??= StreamProvider.GetStream<MeasurementUnitModifyEvent>(NodeId);
+
+        private IAsyncStream<MeasurementUnitCancelEvent> MeasurementUnitCancelStream
+            => _measurementUnitCancelStream ??= StreamProvider.GetStream<MeasurementUnitCancelEvent>(NodeId);
 
         protected ScheduledUnitGrain(ILogger logger, 
             IAsyncObserver<ScheduledNodeExecuteEvent> nodeExecuteObserver,

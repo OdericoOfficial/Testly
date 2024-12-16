@@ -5,7 +5,7 @@ using TorchSharp;
 
 namespace Testly.Domain.States
 {
-    public class AggregateUnitState
+    public class MeasurementUnitState
     {
         public DateTime StartTime { get; private set; }
 
@@ -13,7 +13,7 @@ namespace Testly.Domain.States
 
         public DateTime LastPublish { get; private set; }
 
-        public ScheduledNodeState CurrentState { get; private set; } = ScheduledNodeState.None;
+        public ScheduledNodeCurrentState CurrentState { get; private set; } = ScheduledNodeCurrentState.None;
 
         public int Sample { get; private set; }
 
@@ -28,14 +28,14 @@ namespace Testly.Domain.States
             StartTime = default;
             EndTime = default;
             LastPublish = default;
-            CurrentState = ScheduledNodeState.Executing;
+            CurrentState = ScheduledNodeCurrentState.Executing;
             Sample = sample;
             BatchSize = batchSize;
             ReceivedSample = 0;
             ReceivedMeasurement = null;
         }
 
-        public void ApplyNext(AggregateUnitEvent item)
+        public void ApplyNext(MeasurementUnitEvent item)
         {
             ReceivedSample++;
 
@@ -53,7 +53,7 @@ namespace Testly.Domain.States
             StartTime = default;
             EndTime = default;
             LastPublish = default;
-            CurrentState = ScheduledNodeState.Completed;
+            CurrentState = ScheduledNodeCurrentState.Completed;
             Sample = 0;
             BatchSize = 0;
             ReceivedSample = 0;
@@ -65,7 +65,7 @@ namespace Testly.Domain.States
             StartTime = default;
             EndTime = default;
             LastPublish = default;
-            CurrentState = ScheduledNodeState.Cancelled;
+            CurrentState = ScheduledNodeCurrentState.Cancelled;
             Sample = 0;
             BatchSize = 0;
             ReceivedSample = 0;

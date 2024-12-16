@@ -3,38 +3,38 @@ using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.States
 {
-    public class SessionState<TSentEvent, TReceivedEvent> : ISessionState<TSentEvent, TReceivedEvent>
-        where TSentEvent : struct, ISentEvent
-        where TReceivedEvent : struct, IReceivedEvent
+    public class SessionState<TSentEvent, TReceivedEvent>
+        where TSentEvent : SentEvent
+        where TReceivedEvent : ReceivedEvent
     {
-        public TSentEvent SentEvent { get; private set; }
+        public TSentEvent? SentEvent { get; private set; }
 
-        public TReceivedEvent ReceivedEvent { get; private set; }
-
-        public byte ContainState { get; private set; }
-
-        public void ApplyContainReceivedEventToBothContained(TSentEvent item)
-        {
-            SentEvent = item;
-            ContainState = (byte)SessionContainState.BothContained;
-        }
+        public TReceivedEvent? ReceivedEvent { get; private set; }
+        
+        public SessionContainState ContainState { get; private set; }
 
         public void ApplyNoneToContainSentEvent(TSentEvent item)
         {
             SentEvent = item;
-            ContainState = (byte)SessionContainState.ContainSentEvent;
+            ContainState = SessionContainState.ContainSentEvent;
+        }
+
+        public void ApplyContainReceivedEventToBothContained(TSentEvent item)
+        {
+            SentEvent = item;
+            ContainState = SessionContainState.BothContained;
         }
 
         public void ApplyContainSentEventToBothContained(TReceivedEvent item)
         {
             ReceivedEvent = item;
-            ContainState = (byte)SessionContainState.BothContained;
+            ContainState = SessionContainState.BothContained;
         }
 
         public void ApplyNoneToContainReceivedEvent(TReceivedEvent item)
         {
             ReceivedEvent = item;
-            ContainState = (byte)SessionContainState.ContainReceivedEvent;
+            ContainState = SessionContainState.ContainReceivedEvent;
         }
     }
 }

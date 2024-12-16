@@ -7,9 +7,9 @@ namespace Testly.Domain.Grains.Abstractions
 {
     public abstract partial class ScheduledNodeGrain<TCommand, TScheduledState>
     {
-        public virtual Task ModifyAsync(TCommand item)
+        public virtual Task HandleAsync(TCommand item)
         {
-            if (State.CurrentState != ScheduledNodeState.Executing)
+            if (State.CurrentState != ScheduledNodeCurrentState.Executing)
                 State.ApplyModify(item);
             return Task.CompletedTask;
         }
@@ -21,13 +21,13 @@ namespace Testly.Domain.Grains.Abstractions
 #endif
         public virtual async Task ClearAsync()
         {
-            if (State.CurrentState != ScheduledNodeState.Executing)
+            if (State.CurrentState != ScheduledNodeCurrentState.Executing)
                 await ClearStateAsync();
         }
 
         public virtual Task OnNextAsync(ScheduledNodeExecuteEvent item)
         {
-            if (State.CurrentState != ScheduledNodeState.Executing)
+            if (State.CurrentState != ScheduledNodeCurrentState.Executing)
                 State.ApplyExecute();
             return Task.CompletedTask;
         }
@@ -39,7 +39,7 @@ namespace Testly.Domain.Grains.Abstractions
 #endif
         public virtual async Task OnNextAsync(ScheduledNodeCompletedEvent item)
         {
-            if (State.CurrentState == ScheduledNodeState.Executing)
+            if (State.CurrentState == ScheduledNodeCurrentState.Executing)
             {
                 if (LastNodeCompletedStream is not null)
                     await LastNodeCompletedStream.OnNextAsync(new ScheduledNodeCompletedEvent
@@ -54,7 +54,7 @@ namespace Testly.Domain.Grains.Abstractions
 
         public virtual Task OnNextAsync(ScheduledNodeCancelEvent item)
         {
-            if (State.CurrentState == ScheduledNodeState.Executing)
+            if (State.CurrentState == ScheduledNodeCurrentState.Executing)
                 State.ApplyCancelled();
             return Task.CompletedTask;
         }

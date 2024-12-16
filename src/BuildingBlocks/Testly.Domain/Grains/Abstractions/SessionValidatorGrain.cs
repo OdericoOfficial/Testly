@@ -1,19 +1,19 @@
 ﻿using Orleans.Streams;
 using Testly.Domain.Events;
-using Testly.Domain.States;
+using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
     public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> 
     {
-        public override async Task OnNextAsync(TSentEvent item)
+        public async Task OnNextAsync(TSentEvent item)
         {
-            switch (State.Process)
+            switch (State.ContainState)
             {
-                case SessionProcess.None:
+                case SessionContainState.None:
                     State.ApplyNoneToContainSentEvent(item);
                     break;
-                case SessionProcess.ContainReceivedEvent:
+                case SessionContainState.ContainReceivedEvent:
                     State.ApplyContainReceivedEventToBothContained(item);
                     await OnCompletedAsync();
                     break;
@@ -22,32 +22,32 @@ namespace Testly.Domain.Grains.Abstractions
 
         public async Task OnNextAsync(TReceivedEvent item)
         {
-            switch (State.Process)
+            switch (State.ContainState)
             {
-                case SessionProcess.None:
+                case SessionContainState.None:
                     State.ApplyNoneToContainReceivedEvent(item);
                     break;
-                case SessionProcess.ContainSentEvent:
+                case SessionContainState.ContainSentEvent:
                     State.ApplyContainSentEventToBothContained(item);
                     await OnCompletedAsync();
                     break;
             }
         }
 
-        protected override async Task OnCompletedAsync()
+        private async Task OnCompletedAsync()
         {
-            if (_streamProvider != null
-                && State.Process == SessionProcess.BothContained
+            if (State.ContainState == SessionContainState.BothContained
+                && State.SentEvent is not null
+                && State.ReceivedEvent is not null
                 && ValidateSession(State.SentEvent, State.ReceivedEvent))
             {
-                var aggregateStream = _streamProvider.GetStream<AggregateUnitEvent>(Constants.DefaultAggregateUnitNamespace, 
-                    State.ReceivedEvent.PublisherId);
+                var measurementUnitStream = StreamProvider.GetStream<MeasurementUnitEvent>(State.ReceivedEvent.PublisherId);
 
-                await aggregateStream.OnNextAsync(new AggregateUnitEvent
+                await measurementUnitStream.OnNextAsync(new MeasurementUnitEvent
                 {
                     StartTime = State.SentEvent.SendingTime,
                     EndTime = State.ReceivedEvent.ReceivedTime,
-                    PublisherId = this.GetPrimaryKey(),
+                    PublisherId = ValidatorId,
                     SubscriberId = State.ReceivedEvent.PublisherId
                 });
             }

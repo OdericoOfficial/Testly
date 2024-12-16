@@ -3,33 +3,58 @@ using Orleans.Streams;
 using Testly.Domain.Events.Abstractions;
 using Testly.Domain.Observers.Abstractions;
 using Testly.Domain.States;
+using static Testly.Domain.Grains.NullSetter;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> : SentValidatorGrain<TSentEvent, SessionState<TSentEvent, TReceivedEvent>>,
+    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> : Grain<SessionState<TSentEvent, TReceivedEvent>>,
         IDomainEventAsyncObserver<TReceivedEvent>
-        where TSentEvent : struct, ISentEvent
-        where TReceivedEvent : struct, IReceivedEvent
+        where TSentEvent : SentEvent
+        where TReceivedEvent : ReceivedEvent
     {
-        private readonly IAsyncObserver<TReceivedEvent> _observer;
-        private StreamSubscriptionHandle<TReceivedEvent>? _subscriptionHandle;
+        protected readonly ILogger _logger;
+        private readonly IAsyncObserver<TSentEvent> _sentObserver;
+        private readonly IAsyncObserver<TReceivedEvent> _receivedObserver;
+        private Guid? _validatorId;
+        private IStreamProvider? _streamProvider;
+        private IAsyncStream<TSentEvent>? _sentStream;
+        private IAsyncStream<TReceivedEvent>? _receivedStream;
+        private StreamSubscriptionHandle<TSentEvent>? _sentHandle;
+        private StreamSubscriptionHandle<TReceivedEvent>? _receivedHandle;
 
-        protected SessionValidatorGrain(IAsyncObserver<TSentEvent> sentObserver, IAsyncObserver<TReceivedEvent> receivedObserver, ILogger logger) : base(sentObserver, logger)
-            => _observer = receivedObserver;
+        private Guid ValidatorId
+            => _validatorId ??= this.GetPrimaryKey();
+
+        private IStreamProvider StreamProvider
+            => _streamProvider ??= this.GetStreamProvider(nameof(Stream));
+
+        private IAsyncStream<TSentEvent> SentStream
+            => _sentStream ??= StreamProvider.GetStream<TSentEvent>(ValidatorId);
+
+        private IAsyncStream<TReceivedEvent> ReceivedStream
+            => _receivedStream ??= StreamProvider.GetStream<TReceivedEvent>(ValidatorId);
+
+        protected SessionValidatorGrain(IAsyncObserver<TSentEvent> sentObserver, IAsyncObserver<TReceivedEvent> receivedObserver, ILogger logger)
+        {
+            _sentObserver = sentObserver;
+            _receivedObserver = receivedObserver;
+            _logger = logger;   
+        }
 
         public override async Task OnActivateAsync(CancellationToken cancellationToken)
         {
-            await base.OnActivateAsync(cancellationToken);
-
-            _subscriptionHandle = await _streamProvider.GetStream<TReceivedEvent>(Constants.DefaultSessionValidatorNamespace, this.GetPrimaryKey())
-                .SubscribeAsync(_observer);
+            _sentHandle = await SentStream.SubscribeAsync(_sentObserver);
+            _receivedHandle = await ReceivedStream.SubscribeAsync(_receivedObserver);
         }
 
         public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
         {
-            await _subscriptionHandle!.UnsubscribeAsync();
+            await UnsubscribeSetNullAsync(ref _sentHandle);
+            await UnsubscribeSetNullAsync(ref _receivedHandle);
+            await ClearStateAsync();
 
-            await base.OnDeactivateAsync(reason, cancellationToken);
+            _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
+                GetType().Name, ValidatorId, reason);
         }
     }
 }

@@ -6,8 +6,8 @@ using Testly.Domain.Factories.Abstractions;
 namespace Testly.Domain.Factories
 {
     internal class MapsterScheduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse> : ISchduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>
-        where TSentEvent : struct, ISentEvent
-        where TReceivedEvent : struct, IReceivedEvent
+        where TSentEvent : SentEvent
+        where TReceivedEvent : ReceivedEvent
     {
         private readonly IMapper _mapper;
 

@@ -1,10 +1,8 @@
-﻿using System.Reflection;
-
-namespace Microsoft.Extensions.DependencyInjection
+﻿namespace Microsoft.Extensions.DependencyInjection
 {
-    public static class IServiceCollectionExtensions
+    public static partial class IServiceCollectionExtensions
     {
         public static IServiceCollection AddMocks(this IServiceCollection services)
-            => services.AddRegisteredService(Assembly.GetExecutingAssembly());
+            => services.AddMarkedServices();
     }
 }

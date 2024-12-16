@@ -2,10 +2,7 @@
 
 namespace Testly.Domain.Events
 {
-    public record ScheduledNodeExecuteEvent : IDomainEvent
+    public record ScheduledNodeExecuteEvent : DomainEvent
     {
-        public Guid PublisherId { get; init; }
-
-        public Guid SubscriberId { get; init; }
     }
 }

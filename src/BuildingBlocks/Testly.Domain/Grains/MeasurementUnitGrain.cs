@@ -7,7 +7,7 @@ using TorchSharp;
 
 namespace Testly.Domain.Grains
 { 
-    internal sealed partial class AggregateUnitGrain
+    internal partial class MeasurementUnitGrain
     {
 #if !ROUGAMO_VERSION_5_0_0_OR_GREATER
         [Rougamo<LoggingException>]
@@ -16,17 +16,16 @@ namespace Testly.Domain.Grains
 #endif
         public async Task ExecuteAsync(int sample, int batchSize)
         {
-            if (State.CurrentState != ScheduledNodeState.Executing)
+            if (State.CurrentState != ScheduledNodeCurrentState.Executing)
             {
-                await this.RegisterOrUpdateReminder(Constants.DefaultAggregateCompletedReminder,
-                    TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(1));
+                await this.RegisterOrUpdateReminder(nameof(MeasurementUnitGrain), TimeSpan.FromMinutes(15), TimeSpan.FromMinutes(1));
                 State.ApplyExecute(sample, batchSize);
             }
         }
 
-        public Task OnNextAsync(AggregateUnitEvent item)
+        public Task OnNextAsync(MeasurementUnitEvent item)
         {
-            if (State.CurrentState == ScheduledNodeState.Executing)
+            if (State.CurrentState == ScheduledNodeCurrentState.Executing)
             {
                 var time = Convert.ToSingle((item.EndTime - item.StartTime).TotalMilliseconds);
                 ReceivedMeasurement[State.ReceivedSample] = time;
@@ -41,11 +40,11 @@ namespace Testly.Domain.Grains
 #else
         [LoggingException]
 #endif
-        public async Task OnNextAsync(AggregateUnitCancelEvent item)
+        public async Task OnNextAsync(MeasurementUnitCancelEvent item)
         {
-            if (State.CurrentState == ScheduledNodeState.Executing)
+            if (State.CurrentState == ScheduledNodeCurrentState.Executing)
             {
-                var reminder = await this.GetReminder(Constants.DefaultAggregateCompletedReminder);
+                var reminder = await this.GetReminder(nameof(MeasurementUnitGrain));
                 if (reminder is not null)
                     await this.UnregisterReminder(reminder);
                 State.ApplyCancelled();
@@ -54,9 +53,9 @@ namespace Testly.Domain.Grains
 
         public async Task ReceiveReminder(string reminderName, TickStatus status)
         {
-            if (reminderName == Constants.DefaultAggregateCompletedReminder
+            if (reminderName == nameof(MeasurementUnitGrain)
                 && (DateTime.UtcNow - State.LastPublish) > TimeSpan.FromMinutes(2)
-                && State.CurrentState == ScheduledNodeState.Executing)
+                && State.CurrentState == ScheduledNodeCurrentState.Executing)
                 await OnCompletedAsync();
         }
 
@@ -69,7 +68,7 @@ namespace Testly.Domain.Grains
         {
             await PublishAsync();
 
-            var reminder = await this.GetReminder(Constants.DefaultAggregateCompletedReminder);
+            var reminder = await this.GetReminder(nameof(MeasurementUnitGrain));
             if (reminder is not null)
                 await this.UnregisterReminder(reminder);
 
@@ -83,7 +82,7 @@ namespace Testly.Domain.Grains
                 var start = 0;
                 var end = 0;
                 var storageId = await _factory.NextAsync();
-                var scalarStream = StreamProvider.GetStream<ScalarEvent>(Constants.DefaultScalarNamespace, storageId);
+                var scalarStream = StreamProvider.GetStream<ScalarEvent>(nameof(MeasurementUnitGrain), storageId);
 
                 while (end < State.ReceivedSample)
                 {
@@ -95,7 +94,7 @@ namespace Testly.Domain.Grains
                     start += State.BatchSize;
                 }
 
-                var summaryStream = StreamProvider.GetStream<SummaryEvent>(Constants.DefaultSummaryNamespcace, storageId);
+                var summaryStream = StreamProvider.GetStream<SummaryEvent>(nameof(MeasurementUnitGrain), storageId);
                 await PublishSummaryAsync(summaryStream, storageId, 
                     State.ReceivedSample, State.Sample, State.StartTime, State.EndTime);
             }

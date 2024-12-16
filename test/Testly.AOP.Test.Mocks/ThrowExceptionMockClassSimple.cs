@@ -1,13 +1,13 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Rougamo;
 using Testly.AOP.Rougamo;
 using Testly.AOP.Tests.Mocks.Abstractions;
-using Testly.DependencyInjection.Attributes;
 
 namespace Testly.AOP.Tests.Mocks
 {
-    [Singleton<IThrowExceptionMock>]
-    internal class ThrowExceptionMockClassSimple : IThrowExceptionMock, 
+    [Singleton<IThrowExceptionMock>, Enumerable]
+    internal class ThrowExceptionMockClassSimple : IThrowExceptionMock,
 #if !ROUGAMO_VERSION_5_0_0_OR_GREATER
         IRougamo<LoggingException>
 #else

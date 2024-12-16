@@ -3,8 +3,8 @@
 namespace Testly.Domain.Factories.Abstractions
 {
     public interface ISchduleReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>
-        where TSentEvent : struct, ISentEvent
-        where TReceivedEvent : struct, IReceivedEvent
+        where TSentEvent : SentEvent
+        where TReceivedEvent : ReceivedEvent
     {
         TReceivedEvent Create(TResponse response, TSentEvent sentEvent, DateTime receivedTime);
     }
