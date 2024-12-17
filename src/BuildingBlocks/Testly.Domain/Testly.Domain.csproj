@@ -8,14 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="libtorch-cpu-win-x64" Version="2.4.0" />
+    <PackageReference Include="libtorch-cpu-win-x64" Version="2.5.1" />
     <PackageReference Include="Mapster.DependencyInjection" Version="1.0.1" />
     <PackageReference Include="Microsoft.Orleans.Clustering.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Persistence.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Reminders.AdoNet" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Server" Version="9.0.1" />
     <PackageReference Include="Microsoft.Orleans.Streaming.AdoNet" Version="9.0.1-alpha.1" />
-    <PackageReference Include="TorchSharp" Version="0.104.0" />
+    <PackageReference Include="TorchSharp" Version="0.105.0" />
   </ItemGroup>
 
   <ItemGroup>

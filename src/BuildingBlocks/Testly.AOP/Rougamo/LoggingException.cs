@@ -1,45 +1,4 @@
-﻿#if ROUGAMO_VERSION_5_0_0_OR_GREATER
-
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
-using Rougamo;
-using Rougamo.Metadatas;
-using Rougamo.Context;
-using Testly.AOP.Accessors;
-
-namespace Testly.AOP.Rougamo
-{
-#nullable disable
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    [Optimization(ForceSync = ForceSync.All, MethodContext = Omit.Arguments)]
-    [Advice(Feature.ExceptionHandle)]
-    [Lifetime(Lifetime.Singleton)]
-    public class LoggingExceptionAttribute<TTarget> : MoAttribute
-    {
-        public override void OnException(MethodContext context)
-        {
-            if (context.HasException
-                && !context.ExceptionHandled
-                && context.Exception is not null
-                && context.Target is not null
-                && context.Target is TTarget target)
-            {
-                var logger = LoggerUnsafeAccessor<TTarget>.GetLogger(target);
-                logger.LogError(context.Exception, "Unexpected exception in {MethodName} from {TargetType}",
-                    context.TargetType.Name, context.Method.Name);
-                HandledException(context);
-            }
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected virtual void HandledException(MethodContext context)
-            => context.HandledException(this, null);
-    }
-}
-
-#else
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Rougamo.Context;
 using Rougamo;
 using Testly.AOP.Accessors;
@@ -104,5 +63,3 @@ namespace Testly.AOP.Rougamo
             => ValueTask.CompletedTask;
     }
 }
-
-#endif

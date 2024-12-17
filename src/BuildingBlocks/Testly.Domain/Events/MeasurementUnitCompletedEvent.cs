@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.Events
 {
-    public record MeasurementUnitEvent : DomainEvent
+    public record MeasurementUnitCompletedEvent : DomainEvent
     {
         public DateTime StartTime { get; init; }
 

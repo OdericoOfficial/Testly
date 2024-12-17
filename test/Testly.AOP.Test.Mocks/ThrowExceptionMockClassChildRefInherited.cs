@@ -8,11 +8,7 @@ namespace Testly.AOP.Tests.Mocks
 {
     [Singleton<IThrowExceptionRefMock>, Enumerable]
     internal class ThrowExceptionMockClassChildRefInherited : ThrowExceptionMockChildRefAbstract,
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
         IRougamo<LoggingExceptionRef<object>>
-#else
-        IRougamo<LoggingExceptionRefAttribute<object>>
-#endif
     {
         public ThrowExceptionMockClassChildRefInherited(ILogger<ThrowExceptionMockClassChildRefInherited> logger) : base(logger)
         {

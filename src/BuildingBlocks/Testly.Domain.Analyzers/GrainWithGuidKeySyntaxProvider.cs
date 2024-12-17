@@ -1,5 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Testly.Domain.Analyzers
 {
@@ -9,10 +9,9 @@ namespace Testly.Domain.Analyzers
         {
             cancellationToken.ThrowIfCancellationRequested();
             return node is ClassDeclarationSyntax classDeclaration
-                && classDeclaration.AttributeLists
-                .SelectMany(attributeListSyntax
-                    => attributeListSyntax.Attributes)
-                .Any(attribute => attribute.Name.ToString() == "GrainWithGuidKey");
+                && classDeclaration.Identifier.ValueText.EndsWith("Grain")
+                && classDeclaration.AttributeLists.SelectMany(attributeList => attributeList.Attributes)
+                    .Any(attribute => attribute.Name.ToString().Contains("GrainWithGuidKey"));
         }
 
         public static INamedTypeSymbol Transform(GeneratorSyntaxContext context, CancellationToken cancellationToken)

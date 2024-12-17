@@ -15,6 +15,8 @@ namespace Testly.Domain.States
 
         public ScheduledNodeCurrentState CurrentState { get; private set; } = ScheduledNodeCurrentState.None;
 
+        public string UnitName { get; private set; } = string.Empty;
+
         public int Sample { get; private set; }
 
         public int BatchSize { get; private set; }
@@ -23,19 +25,20 @@ namespace Testly.Domain.States
 
         public byte[]? ReceivedMeasurement { get; private set; } 
 
-        public void ApplyExecute(int sample, int batchSize)
+        public void ApplyExecute(MeasurementUnitExecuteEvent item)
         {
             StartTime = default;
             EndTime = default;
             LastPublish = default;
             CurrentState = ScheduledNodeCurrentState.Executing;
-            Sample = sample;
-            BatchSize = batchSize;
+            UnitName = item.UnitName;
+            Sample = item.Sample;
+            BatchSize = item.Sample;
             ReceivedSample = 0;
             ReceivedMeasurement = null;
         }
 
-        public void ApplyNext(MeasurementUnitEvent item)
+        public void ApplyNext(MeasurementUnitCompletedEvent item)
         {
             ReceivedSample++;
 

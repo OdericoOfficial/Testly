@@ -1,11 +1,46 @@
-﻿using Orleans.Streams;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Streams;
+using Testly.Domain.Attributes;
 using Testly.Domain.Events;
+using Testly.Domain.Events.Abstractions;
+using Testly.Domain.Observers.Abstractions;
+using Testly.Domain.States;
 using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> 
+    [GrainWithGuidKey]
+    [StreamProvider]
+    public abstract partial class SessionValidatorGrain<TSentEvent, TReceivedEvent> : Grain<SessionState<TSentEvent, TReceivedEvent>>,
+        IDomainEventAsyncObserver<TReceivedEvent>
+        where TSentEvent : SentEvent
+        where TReceivedEvent : ReceivedEvent
     {
+        protected readonly ILogger _logger;
+
+        [SubscribeAsyncStream]
+        private IAsyncStream<TSentEvent>? _tSentEventStream;
+
+        [SubscribeAsyncStream]
+        private IAsyncStream<TReceivedEvent>? _tReceivedEventStream;
+        
+        protected SessionValidatorGrain(ILogger logger)
+        {
+            _logger = logger;   
+        }
+
+        public override async Task OnActivateAsync(CancellationToken cancellationToken)
+            => await SubscribeAllAsync();
+
+        public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+        {
+            await UnsubscribeAllAsync();
+            await ClearStateAsync();
+
+            _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
+                GetType().Name, GrainId, reason);
+        }
+
         public async Task OnNextAsync(TSentEvent item)
         {
             switch (State.ContainState)
@@ -41,13 +76,13 @@ namespace Testly.Domain.Grains.Abstractions
                 && State.ReceivedEvent is not null
                 && ValidateSession(State.SentEvent, State.ReceivedEvent))
             {
-                var measurementUnitStream = StreamProvider.GetStream<MeasurementUnitEvent>(State.ReceivedEvent.PublisherId);
+                var measurementUnitStream = StreamProvider.GetStream<MeasurementUnitCompletedEvent>(State.ReceivedEvent.PublisherId);
 
-                await measurementUnitStream.OnNextAsync(new MeasurementUnitEvent
+                await measurementUnitStream.OnNextAsync(new MeasurementUnitCompletedEvent
                 {
                     StartTime = State.SentEvent.SendingTime,
                     EndTime = State.ReceivedEvent.ReceivedTime,
-                    PublisherId = ValidatorId,
+                    PublisherId = GrainId,
                     SubscriberId = State.ReceivedEvent.PublisherId
                 });
             }

@@ -1,28 +1,84 @@
-﻿using Rougamo;
+﻿using Microsoft.Extensions.Logging;
+using Rougamo;
 using Testly.AOP.Rougamo;
+using Testly.Domain.Attributes;
+using Testly.Domain.Commands.Abstractions;
 using Testly.Domain.Events;
+using Testly.Domain.Observers.Abstractions;
 using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class ScheduledNodeGrain<TCommand, TScheduledState>
+    [GrainWithGuidKey]
+    [StreamProvider]
+    [ScheduledNode]
+    [ImplicitSubscribeAsyncStream<ScheduledNodeExecuteEvent>]
+    [ImplicitSubscribeAsyncStream<ScheduledNodeCancelEvent>]
+    [ImplicitSubscribeAsyncStream<ScheduledNodeCompletedEvent>]
+    [ImplicitSubscribeAsyncStream<ScheduledNodeCleanedEvent>]
+    public abstract partial class ScheduledNodeGrain<TModifyCommand, TScheduledState> : Grain<TScheduledState>,
+        IModifyCommandAsyncHandler<TModifyCommand>,
+        IClearCommandAsyncHandler,
+        IDomainEventAsyncObserver<ScheduledNodeExecuteEvent>,
+        IDomainEventAsyncObserver<ScheduledNodeCancelEvent>,
+        IDomainEventAsyncObserver<ScheduledNodeCompletedEvent>,
+        IDomainEventAsyncObserver<ScheduledNodeCleanedEvent>
+        where TModifyCommand : ModifyScheduledNodeCommand
+        where TScheduledState : ScheduledNodeState<TModifyCommand>
     {
-        public virtual Task HandleAsync(TCommand item)
+        protected readonly ILogger _logger;
+
+        protected ScheduledNodeGrain(ILogger logger)
         {
-            if (State.CurrentState != ScheduledNodeCurrentState.Executing)
-                State.ApplyModify(item);
-            return Task.CompletedTask;
+            _logger = logger;
         }
 
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
         [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
-        public virtual async Task ClearAsync()
+        public override async Task OnActivateAsync(CancellationToken cancellationToken)
+        {
+            if (cancellationToken.IsCancellationRequested) 
+                return;
+            await SubscribeAllAsync();
+        }
+
+        [Rougamo<LoggingException>]
+        public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+        {
+            if (State.CurrentState != ScheduledNodeCurrentState.None)
+                await WriteStateAsync();
+
+            await UnsubscribeAllAsync();
+            _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
+                GetType().Name, this.GetPrimaryKey(), reason);
+        }
+
+        [Rougamo<LoggingException>]
+        public virtual async Task ModifyAsync(TModifyCommand item)
         {
             if (State.CurrentState != ScheduledNodeCurrentState.Executing)
-                await ClearStateAsync();
+            {
+                var isInit = State.Command is null;
+                State.ApplyModify(item);
+                if (LastNodeModifiedEventStream is not null && isInit)
+                    await LastNodeModifiedEventStream.OnNextAsync(new ScheduledNodeModifiedEvent
+                    {
+                        PublisherId = GrainId,
+                        SubscriberId = State.Command!.LastId
+                    });
+            }
+        }
+
+        [Rougamo<LoggingException>]
+        public virtual async Task ClearAsync()
+        {
+            var lastNodeCleanedEventStream = LastNodeCleanedEventStream;
+            await ClearStateAsync();
+            if (lastNodeCleanedEventStream is not null)
+                await lastNodeCleanedEventStream.OnNextAsync(new ScheduledNodeCleanedEvent
+                {
+                    PublisherId = GrainId,
+                    SubscriberId = State.Command!.LastId,
+                });
         }
 
         public virtual Task OnNextAsync(ScheduledNodeExecuteEvent item)
@@ -32,30 +88,33 @@ namespace Testly.Domain.Grains.Abstractions
             return Task.CompletedTask;
         }
 
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
-        [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
-        public virtual async Task OnNextAsync(ScheduledNodeCompletedEvent item)
-        {
-            if (State.CurrentState == ScheduledNodeCurrentState.Executing)
-            {
-                if (LastNodeCompletedStream is not null)
-                    await LastNodeCompletedStream.OnNextAsync(new ScheduledNodeCompletedEvent
-                    {
-                        PublisherId = NodeId,
-                        SubscriberId = State.Command!.LastId
-                    });
-
-                State.ApplyCompleted();
-            }
-        }
-
         public virtual Task OnNextAsync(ScheduledNodeCancelEvent item)
         {
             if (State.CurrentState == ScheduledNodeCurrentState.Executing)
                 State.ApplyCancelled();
+            return Task.CompletedTask;
+        }
+
+        [Rougamo<LoggingException>]
+        public async Task OnNextAsync(ScheduledNodeCompletedEvent item)
+        {
+            if (State.CurrentState == ScheduledNodeCurrentState.Executing)
+            {
+                State.ApplyCompleted(item);
+                if (LastNodeCompletedEventStream is not null)
+                    await LastNodeCompletedEventStream.OnNextAsync(new ScheduledNodeCompletedEvent
+                    {
+                        PublisherId = GrainId,
+                        SubscriberId = State.Command!.LastId
+                    });
+            }
+        }
+
+        public virtual Task OnNextAsync(ScheduledNodeCleanedEvent item)
+        {
+            if (State.Command is not null
+                && item.PublisherId == State.Command.LastId)
+                return ClearAsync();
             return Task.CompletedTask;
         }
     }

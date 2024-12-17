@@ -9,10 +9,9 @@ namespace Testly.Domain.Analyzers
         {
             cancellationToken.ThrowIfCancellationRequested();
             return node is ClassDeclarationSyntax classDeclaration
-                && classDeclaration.AttributeLists
-                .SelectMany(attributeListSyntax
-                    => attributeListSyntax.Attributes)
-                .Any(attribute => attribute.Name.ToString() == "StreamProvider");
+                && classDeclaration.Identifier.ValueText.EndsWith("Grain")
+                && classDeclaration.AttributeLists.SelectMany(attributeList => attributeList.Attributes)
+                    .Any(attribute => attribute.Name.ToString().Contains("StreamProvider"));
         }
 
         public static INamedTypeSymbol Transform(GeneratorSyntaxContext context, CancellationToken cancellationToken)

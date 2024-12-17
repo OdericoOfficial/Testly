@@ -2,8 +2,10 @@
 
 namespace Testly.Domain.Events
 {
-    public record ScalarEvent : DomainEvent
+    public record ScalarResultEvent : DomainEvent
     {
+        public string UnitName { get; init; } = string.Empty;
+
         public int Index { get; init; }
 
         public float Avg { get; init; }

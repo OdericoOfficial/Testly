@@ -1,42 +1,64 @@
-﻿using Orleans.Streams;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Streams;
+using Testly.Domain.Attributes;
+using Testly.Domain.Commands.Abstractions;
 using Testly.Domain.Events;
+using Testly.Domain.Events.Abstractions;
+using Testly.Domain.Factories.Abstractions;
+using Testly.Domain.States;
 using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class ScheduledUnitGrain<TSentEvent, TRequest, TCommand>
+    [ImplicitAsyncStream<MeasurementUnitExecuteEvent>]
+    [ImplicitAsyncStream<MeasurementUnitCancelEvent>]
+    public abstract partial class ScheduledUnitGrain<TSentEvent, TRequest, TModifyCommand> : ScheduledNodeGrain<TModifyCommand, ScheduledUnitState<TModifyCommand>> 
+        where TSentEvent : SentEvent
+        where TModifyCommand : ModifyScheduledUnitCommand
     {
-        public override async Task HandleAsync(TCommand item)
+        private readonly IScheduleSessionFactory<TRequest, TModifyCommand> _sessionFactory;
+        private readonly ISchduleSentEventFactory<TSentEvent, TRequest> _sentFactory;
+        
+        protected ScheduledUnitGrain(ILogger logger,
+            IScheduleSessionFactory<TRequest, TModifyCommand> sessionFactory, 
+            ISchduleSentEventFactory<TSentEvent, TRequest> sentFactory) 
+                : base(logger)
         {
-            await base.HandleAsync(item);
-
+            _sessionFactory = sessionFactory;
+            _sentFactory = sentFactory;
         }
 
         public override async Task OnNextAsync(ScheduledNodeExecuteEvent item)
         {
             await base.OnNextAsync(item);
 
-            if (State.CurrentState != ScheduledNodeCurrentState.Executing)
+            if (State.CurrentState != ScheduledNodeCurrentState.Executing
+                && State.Command is not null)
             {
-                //var measurementUnitGrain = GrainFactory.GetGrain<IMeasurementUnitGrain>(NodeId);
-                //await measurementUnitGrain.ExecuteAsync(State.Command!.Sample, State.Command.BatchSize);
-                
-                await InternalScheduleAsync(State.Command, ExecuteSessionAsync);
+                await MeasurementUnitExecuteEventStream.OnNextAsync(new MeasurementUnitExecuteEvent
+                {
+                    PublisherId = GrainId,
+                    SubscriberId = GrainId,
+                    UnitName = GetType().Name,
+                    BatchSize = State.Command.BatchSize,
+                    Sample = State.Command.Sample
+                });
+                await InternalScheduleAsync(ExecuteSessionAsync);
             }
         }
 
-        protected abstract Task InternalScheduleAsync(TCommand command, Func<TCommand, Task> sessionTask);
+        protected abstract Task InternalScheduleAsync(Func<Task> sessionTask);
 
-        private async Task ExecuteSessionAsync(TCommand command)
+        private async Task ExecuteSessionAsync()
         {
             if (State.CurrentState == ScheduledNodeCurrentState.Executing)
             {
-                var request = _sessionFactory.Create(command, NodeId);
+                var request = _sessionFactory.Create(State.Command!, GrainId);
 
                 var tuple = await _sessionFactory.CreateAsyncInvoker()
-                    .Invoke(command, request);
-                
-                var sentEvent = await _sentFactory.CreateAsync(request, tuple, NodeId);
+                    .Invoke(State.Command!, request);
+
+                var sentEvent = await _sentFactory.CreateAsync(request, tuple, GrainId);
                 var sentStream = StreamProvider.GetStream<TSentEvent>(sentEvent.SubscriberId);
                 await sentStream.OnNextAsync(sentEvent);
 
@@ -58,10 +80,10 @@ namespace Testly.Domain.Grains.Abstractions
             await base.OnNextAsync(item);
 
             if (State.CurrentState != ScheduledNodeCurrentState.Executing)
-                await MeasurementUnitCancelStream.OnNextAsync(new MeasurementUnitCancelEvent
+                await MeasurementUnitCancelEventStream.OnNextAsync(new MeasurementUnitCancelEvent
                 {
-                    PublisherId = NodeId,
-                    SubscriberId = NodeId
+                    PublisherId = GrainId,
+                    SubscriberId = GrainId
                 });
         }
     }

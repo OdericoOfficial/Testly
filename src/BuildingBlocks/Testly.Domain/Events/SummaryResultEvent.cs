@@ -2,8 +2,10 @@
 
 namespace Testly.Domain.Events
 {
-    public record SummaryEvent : DomainEvent
+    public record SummaryResultEvent : DomainEvent
     {
+        public string UnitName { get; init; } = string.Empty;
+
         public DateTime StartTime { get; init; }
 
         public DateTime EndTime { get; init; }

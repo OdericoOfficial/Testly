@@ -1,13 +1,14 @@
 ﻿using Testly.Domain.Commands.Abstractions;
+using Testly.Domain.Events;
 
 namespace Testly.Domain.States.Abstractions
 {
-    public abstract class ScheduledNodeState<TCommand>
-        where TCommand : ModifyScheduledNodeCommand
+    public abstract class ScheduledNodeState<TModifyCommand>
+        where TModifyCommand : ModifyScheduledNodeCommand
     {
         public DateTime CompletedTime { get; protected set; }
 
-        public TCommand? Command { get; protected set; }
+        public TModifyCommand? Command { get; protected set; }
 
         public ScheduledNodeCurrentState CurrentState { get; protected set; }
 
@@ -17,7 +18,7 @@ namespace Testly.Domain.States.Abstractions
             CurrentState = ScheduledNodeCurrentState.Executing;
         }
 
-        public virtual void ApplyModify(TCommand item)
+        public virtual void ApplyModify(TModifyCommand item)
         {
             Command = item;
             CompletedTime = default;
@@ -30,7 +31,7 @@ namespace Testly.Domain.States.Abstractions
             CurrentState = ScheduledNodeCurrentState.Cancelled;
         }
 
-        public virtual void ApplyCompleted()
+        public virtual void ApplyCompleted(ScheduledNodeCompletedEvent item)
         {
             CompletedTime = DateTime.UtcNow;
             CurrentState = ScheduledNodeCurrentState.Completed;

@@ -1,27 +1,4 @@
-﻿#if ROUGAMO_VERSION_5_0_0_OR_GREATER
-
-using Rougamo.Context;
-using Rougamo.Metadatas;
-using Rougamo;
-using System.Runtime.CompilerServices;
-
-namespace Testly.AOP.Rougamo
-{
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, AllowMultiple = false, Inherited = true)]
-    [Optimization(ForceSync = ForceSync.All, MethodContext = Omit.Arguments)]
-    [Advice(Feature.ExceptionHandle)]
-    [Lifetime(Lifetime.Singleton)]
-    public class LoggingExceptionRefAttribute<TRet> : LoggingExceptionAttribute
-        where TRet : class, new()
-    {
-        protected override void HandledException(MethodContext context)
-            => context.HandledException(this, new TRet());
-    }
-}
-
-#else
-
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Rougamo.Context;
 using Rougamo;
 using Testly.AOP.Accessors;
@@ -86,5 +63,3 @@ namespace Testly.AOP.Rougamo
             => ValueTask.CompletedTask;
     }
 }
-
-#endif

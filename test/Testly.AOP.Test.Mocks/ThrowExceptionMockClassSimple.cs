@@ -8,11 +8,11 @@ namespace Testly.AOP.Tests.Mocks
 {
     [Singleton<IThrowExceptionMock>, Enumerable]
     internal class ThrowExceptionMockClassSimple : IThrowExceptionMock,
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
+
         IRougamo<LoggingException>
-#else
-        IRougamo<LoggingExceptionAttribute>
-#endif
+
+        
+
     {
         private readonly ILogger _logger;
 

@@ -6,7 +6,9 @@ using static Testly.Domain.Analyzers.DependencyInjectionSyntaxProvider;
 namespace Testly.Domain.Analyzers
 {
     [Generator(LanguageNames.CSharp)]
+#pragma warning disable RS1036 // 指定分析器禁止的 API 强制设置
     internal class DependencyInjectionIncrementalGenerator : IIncrementalGenerator
+#pragma warning restore RS1036 // 指定分析器禁止的 API 强制设置
     {
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {

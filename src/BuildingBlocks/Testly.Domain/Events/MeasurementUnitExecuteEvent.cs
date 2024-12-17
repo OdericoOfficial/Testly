@@ -2,8 +2,10 @@
 
 namespace Testly.Domain.Events
 {
-    public record MeasurementUnitModifyEvent : DomainEvent
+    public record MeasurementUnitExecuteEvent : DomainEvent
     {
+        public string UnitName { get; set; } = string.Empty;
+
         public int Sample { get; init; }
 
         public int BatchSize { get; init; }

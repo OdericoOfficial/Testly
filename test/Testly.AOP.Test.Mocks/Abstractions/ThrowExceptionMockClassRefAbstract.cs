@@ -5,11 +5,7 @@ using Testly.AOP.Rougamo;
 namespace Testly.AOP.Tests.Mocks.Abstractions
 {
     public abstract class ThrowExceptionMockClassRefAbstract : IThrowExceptionRefMock,
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
         IRougamo<LoggingExceptionRef<object>>
-#else
-        IRougamo<LoggingExceptionRefAttribute<object>>
-#endif
     {
         protected readonly ILogger _logger;
 

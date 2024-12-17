@@ -13,38 +13,38 @@ namespace Testly.AOP.Tests.Mocks
         {
         }
 
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
+
         [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
+
+        
+
         public override void NotThrow()
         {
         }
 
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
+
         [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
+
+        
+
         public override async Task NotThrowAsync()
             => await Task.Delay(100);
 
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
+
         [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
+
+        
+
         public override void ThrowException()
         {
             throw new NotImplementedException();
         }
 
-#if !ROUGAMO_VERSION_5_0_0_OR_GREATER
+
         [Rougamo<LoggingException>]
-#else
-        [LoggingException]
-#endif
+
+        
+
         public override async Task ThrowExceptionAsync()
         {
             await Task.Delay(100);

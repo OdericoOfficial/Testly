@@ -1,11 +1,45 @@
-﻿using Orleans.Streams;
+﻿using Microsoft.Extensions.Logging;
+using Orleans.Streams;
+using Rougamo;
+using Testly.AOP.Rougamo;
+using Testly.Domain.Attributes;
 using Testly.Domain.Events;
+using Testly.Domain.Events.Abstractions;
+using Testly.Domain.Observers.Abstractions;
+using Testly.Domain.States;
 using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.Grains.Abstractions
 {
-    public abstract partial class SentValidatorGrain<TSentEvent> 
+    [GrainWithGuidKey]
+    [StreamProvider]
+    public abstract partial class SentValidatorGrain<TSentEvent> : Grain<SentState<TSentEvent>>, 
+        IDomainEventAsyncObserver<TSentEvent>,
+        IRougamo<LoggingException>
+        where TSentEvent : SentEvent
     {
+        protected readonly ILogger _logger;
+
+        [SubscribeAsyncStream]
+        private IAsyncStream<TSentEvent>? _tSentEventStream;
+
+        protected SentValidatorGrain(ILogger logger)
+        {
+            _logger = logger;
+        }
+
+        public override async Task OnActivateAsync(CancellationToken cancellationToken)
+            => await SubscribeAllAsync();
+
+        public override async Task OnDeactivateAsync(DeactivationReason reason, CancellationToken cancellationToken)
+        {
+            await UnsubscribeAllAsync();
+            await ClearStateAsync();
+
+            _logger.LogInformation("{GrainName} {GrainId} Deactivate: {DeactivateReason}",
+                GetType().Name, GrainId, reason);
+        }
+
         public async Task OnNextAsync(TSentEvent item)
         {
             switch (State.ContainState)
@@ -23,13 +57,13 @@ namespace Testly.Domain.Grains.Abstractions
                 && State.SentEvent is not null
                 && ValidateSent(State.SentEvent))
             {
-                var measurementUnitStream = StreamProvider.GetStream<MeasurementUnitEvent>(State.SentEvent.PublisherId);
+                var measurementUnitStream = StreamProvider.GetStream<MeasurementUnitCompletedEvent>(State.SentEvent.PublisherId);
 
-                await measurementUnitStream.OnNextAsync(new MeasurementUnitEvent
+                await measurementUnitStream.OnNextAsync(new MeasurementUnitCompletedEvent
                 {
                     StartTime = State.SentEvent.SendingTime,
                     EndTime = State.SentEvent.SentTime,
-                    PublisherId = ValidatorId,
+                    PublisherId = GrainId,
                     SubscriberId = State.SentEvent.PublisherId
                 });
             }
