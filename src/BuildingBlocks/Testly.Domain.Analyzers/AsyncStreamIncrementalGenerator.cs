@@ -75,7 +75,7 @@ namespace Testly.Domain.Analyzers
                     subscribeBuilder.AppendLine("            await base.SubscribeAllAsync();");
 
                 unsubscribeBuilder.AppendLine($@"
-        {prefix} {handlePrefix} async Task UnsubscribeAllAsync()
+        {prefix}{handlePrefix} async Task UnsubscribeAllAsync()
         {{");
                 if (handle)
                     unsubscribeBuilder.AppendLine("            await base.UnsubscribeAllAsync();");
@@ -100,12 +100,20 @@ namespace Testly.Domain.Analyzers
                         builder.AppendLine($@"
         private IAsyncObserver<{item.EventName}>? {fieldPerfix}Observer;
         {prefix} IAsyncObserver<{item.EventName}> {item.EventName}Observer
-            => {fieldPerfix}Observer ??= ServiceProvider.GetRequiredService<IAsyncObserver<{item.EventName}>>();
+            => {fieldPerfix}Observer ??= ServiceProvider.GetRequiredKeyedService<IAsyncObserver<{item.EventName}>>(""MiddlewareObserver"");
 
-        private StreamSubscriptionHandle<{item.EventName}>? {fieldPerfix}Handle;");
+        private StreamSubscriptionHandle<{item.EventName}>? {fieldPerfix}Handle;
+
+        private IAsyncObserver<{item.EventName}>? {fieldPerfix}BatchObserver;
+        {prefix} IAsyncObserver<{item.EventName}> {item.EventName}BatchObserver
+            => {fieldPerfix}BatchObserver ??= ServiceProvider.GetRequiredKeyedService<IAsyncObserver<{item.EventName}>>(""MiddlewareBatchObserver"");
+
+        private StreamSubscriptionHandle<{item.EventName}>? {fieldPerfix}BatchHandle;");
 
                         subscribeBuilder.AppendLine($"            {fieldPerfix}Handle = await {item.EventName}Stream.SubscribeAsync({item.EventName}Observer);");
                         unsubscribeBuilder.AppendLine($"            await UnsubscribeSetNullAsync(ref {fieldPerfix}Handle);");
+                        subscribeBuilder.AppendLine($"            {fieldPerfix}Handle = await {item.EventName}Stream.SubscribeAsync({item.EventName}BatchObserver);");
+                        unsubscribeBuilder.AppendLine($"            await UnsubscribeSetNullAsync(ref {fieldPerfix}BatchHandle);");
                     }
                 }
 

@@ -39,24 +39,34 @@ namespace Testly.Domain.Analyzers
 {{
     {name}
     {{
-#nullable enable
-        private IAsyncStream<ScheduledNodeCompletedEvent>? _lastNodeCompletedEventStream;
-        {prefix} IAsyncStream<ScheduledNodeCompletedEvent>? LastNodeCompletedEventStream
-            => _lastNodeCompletedEventStream ??=
-                (State.Command?.LastId is null ? null : StreamProvider.GetStream<ScheduledNodeCompletedEvent>(State.Command.LastId));
-        
-        private IAsyncStream<ScheduledNodeCleanedEvent>? _lastNodeCleanedEventStream;
-        {prefix} IAsyncStream<ScheduledNodeCleanedEvent>? LastNodeCleanedEventStream
-            => _lastNodeCleanedEventStream ??=
-                (State.Command?.LastId is null ? null : StreamProvider.GetStream<ScheduledNodeCleanedEvent>(State.Command.LastId));
+#nullable enable        
+        private IAsyncStream<NodeModifiedEvent>? _notifyModifiedEventStream;
+        {prefix} IAsyncStream<NodeModifiedEvent>? NotifyModifiedEventStream
+            => _notifyModifiedEventStream ??=
+                State.Command is not null && State.Command.Root != default ? StreamProvider.GetStream<NodeModifiedEvent>(State.Command.Root) : null;
 
-        private IAsyncStream<ScheduledNodeModifiedEvent>? _lastNodeModifiedEventStream;
-        {prefix} IAsyncStream<ScheduledNodeModifiedEvent>? LastNodeModifiedEventStream
-            => _lastNodeModifiedEventStream ??=
-                (State.Command?.LastId is null ? null : StreamProvider.GetStream<ScheduledNodeModifiedEvent>(State.Command.LastId));
+        private IAsyncStream<NodeExecutingEvent>? _notifyExecutingEventStream;
+        {prefix} IAsyncStream<NodeExecutingEvent>? NotifyExecutingEventStream
+            => _notifyExecutingEventStream ??=
+                State.Command is not null && State.Command.Root != default ? StreamProvider.GetStream<NodeExecutingEvent>(State.Command.Root) : null;
+
+        private IAsyncStream<NodeCompletedEvent>? _notifyCompletedEventStream;
+        {prefix} IAsyncStream<NodeCompletedEvent>? NotifyCompletedEventStream
+            => _notifyCompletedEventStream ??=
+                State.Command is not null && State.Command.Root != default ? StreamProvider.GetStream<NodeCompletedEvent>(State.Command.Root) : null;
+
+        private IAsyncStream<NodeCancelledEvent>? _notifyCancelledEventStream;
+        {prefix} IAsyncStream<NodeCancelledEvent>? NotifyCancelledEventStream
+            => _notifyCancelledEventStream ??=
+                State.Command is not null && State.Command.Root != default ? StreamProvider.GetStream<NodeCancelledEvent>(State.Command.Root) : null;
+    
+        private IAsyncStream<NodeCleanedEvent>? _notifyCleanedEventStream;
+        {prefix} IAsyncStream<NodeCleanedEvent>? NotifyCleanedEventStream
+            => _notifyCleanedEventStream ??=
+                State.Command is not null && State.Command.Root != default ? StreamProvider.GetStream<NodeCleanedEvent>(State.Command.Root) : null;
     }}
 }}");
-                context.AddSource($"{symbol.Name}.last.g.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
+                context.AddSource($"{symbol.Name}.parent.g.cs", SourceText.From(builder.ToString(), Encoding.UTF8));
             });
         }
     }
