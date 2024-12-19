@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.States
 {
-    public class ChildNodeState
+    public sealed class ChildNodeState
     {
         public NodeCurrentState CurrentState { get; set; } = NodeCurrentState.None;
 

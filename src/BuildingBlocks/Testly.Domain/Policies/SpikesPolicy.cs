@@ -1,13 +1,15 @@
 ﻿using System.Security.Cryptography;
-using Testly.Domain.Commands.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Testly.Domain.Attributes;
+using Testly.Domain.Commands;
 using Testly.Domain.Policies.Abstractions;
 
 namespace Testly.Domain.Policies
 {
-    internal class SpikesPolicy<TCommand> : ISpikesPolicy<TCommand>
-        where TCommand : ISpikeCommand
+    [Singleton<ISentPolicy<SpikesCommand>>, Policy]
+    internal sealed class SpikesPolicy : ISentPolicy<SpikesCommand>
     {
-        public async Task ScheduleAsync(TCommand item, Func<Task> sentTask)
+        public async Task ScheduleAsync(SpikesCommand item, Func<Task> sentTask)
         {
             await Parallel.ForAsync(0, item.Sample, async (index, cancellationToken) =>
             {

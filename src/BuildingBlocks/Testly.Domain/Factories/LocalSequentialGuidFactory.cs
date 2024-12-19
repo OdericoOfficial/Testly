@@ -6,7 +6,7 @@ using Testly.Domain.Factories.Abstractions;
 namespace Testly.Domain.Factories
 {
     [Singleton<IGuidFactory>]
-    internal class LocalSequentialGuidFactory : IGuidFactory
+    internal sealed class LocalSequentialGuidFactory : IGuidFactory
     {
         private long _counter = DateTime.UtcNow.Ticks;
 

@@ -5,7 +5,7 @@ using Testly.Domain.Observers.Abstractions;
 
 namespace Testly.Domain.Observers
 {
-    internal class MiddlewareObserver<TEvent> : IAsyncObserver<TEvent>
+    internal sealed class MiddlewareObserver<TEvent> : IAsyncObserver<TEvent>
         where TEvent : IEvent
     {
         private readonly ILogger<MiddlewareObserver<TEvent>> _logger;

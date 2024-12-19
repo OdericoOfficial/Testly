@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.Commands
 {
-    public record SerialCommand : INodeCommand
+    public sealed record SerialCommand : IUnitCommand
     {
         public string Name { get; init; } = string.Empty;
 
@@ -12,6 +12,12 @@ namespace Testly.Domain.Commands
 
         public Guid Root { get; init; }
 
-        public bool IsParallel { get; init; } = true;
+        public int Sample { get; init; }
+
+        public int BatchSize { get; init; }
+
+        public int DelayInclusive { get; init; }
+
+        public int DelayExclusive { get; init; }
     }
 }

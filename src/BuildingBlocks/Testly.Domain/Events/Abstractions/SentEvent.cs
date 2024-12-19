@@ -6,10 +6,6 @@
 
         public Guid SubscriberId { get; init; }
 
-        public bool IsParallel { get; init; }
-
-        public string Name { get; init; } = string.Empty;
-
         public DateTime SendingTime { get; init; }
 
         public DateTime SentTime { get; init; }

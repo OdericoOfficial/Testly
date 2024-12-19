@@ -3,7 +3,7 @@ using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.States
 {
-    public class SessionState<TSentEvent, TReceivedEvent>
+    public sealed class SessionState<TSentEvent, TReceivedEvent>
         where TSentEvent : SentEvent
         where TReceivedEvent : ReceivedEvent
     {

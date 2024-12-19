@@ -1,13 +1,15 @@
 ﻿using System.Security.Cryptography;
-using Testly.Domain.Commands.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Testly.Domain.Attributes;
+using Testly.Domain.Commands;
 using Testly.Domain.Policies.Abstractions;
 
 namespace Testly.Domain.Policies
 {
-    internal class IncreasePolicy<TCommand> : IIncreasePolicy<TCommand>
-        where TCommand : IIncreaseCommand
+    [Singleton<ISentPolicy<IncreaseCommand>>, Policy]
+    internal sealed class IncreasePolicy : ISentPolicy<IncreaseCommand>
     {
-        public async Task ScheduleAsync(TCommand item, Func<Task> sentTask)
+        public async Task ScheduleAsync(IncreaseCommand item, Func<Task> sentTask)
         {
             var historyTask = 0;
             var currentTask = item.Step;

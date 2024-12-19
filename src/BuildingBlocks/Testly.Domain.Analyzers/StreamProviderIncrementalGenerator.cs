@@ -41,7 +41,7 @@ namespace Testly.Domain.Analyzers
 #nullable enable
         private IStreamProvider? _streamProvider;
         {prefix} IStreamProvider StreamProvider
-            => _streamProvider ??= this.GetStreamProvider(nameof(Stream));
+            => _streamProvider ??= this.GetStreamProvider(""PubSubStore"");
     }}
 }}");
                 context.AddSource($"{symbol.Name}.provider.g.cs", SourceText.From(builder.ToString(), Encoding.UTF8));

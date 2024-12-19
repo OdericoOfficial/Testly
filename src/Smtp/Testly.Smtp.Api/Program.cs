@@ -30,7 +30,7 @@ namespace Testly.Smtp.Api
                 if (ex is HostAbortedException)
                     throw;
 
-                Log.Error(ex, "Unexpected error catch outside.");
+                Log.Error(ex, "Unexpected exception catch in main method.");
             }
             finally
             {

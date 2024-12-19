@@ -6,9 +6,9 @@ using Testly.Domain.Grains.Abstractions;
 
 namespace Testly.Domain.Grains
 {
-    internal sealed class ParallelGrain : NodeGrain<ParallelCommand>
+    internal sealed class HorizontalGrain : NodeGrain<HorizontalCommand>
     {
-        public ParallelGrain(ILogger<ParallelGrain> logger) : base(logger)
+        public HorizontalGrain(ILogger<HorizontalGrain> logger) : base(logger)
         {
         }
 

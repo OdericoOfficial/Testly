@@ -2,11 +2,10 @@
 
 namespace Testly.Domain.Factories.Abstractions
 {
-    public interface ISentFactory<TRequest, TCommand>
-        where TCommand : IUnitCommand
+    public interface ISentFactory<TRequest>
     {
-        TRequest Create(TCommand item, Guid unitId);
+        TRequest Create(Guid unitId);
 
-        Func<TRequest, TCommand, Task<(DateTime SendingTime, DateTime SentTime)>> CreateAsyncInvoker();
+        Func<TRequest, Task<(DateTime SendingTime, DateTime SentTime)>> CreateAsyncInvoker();
     }
 }

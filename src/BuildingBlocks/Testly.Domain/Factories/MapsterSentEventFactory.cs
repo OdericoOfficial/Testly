@@ -4,7 +4,7 @@ using Testly.Domain.Factories.Abstractions;
 
 namespace Testly.Domain.Factories
 {
-    internal class MapsterSentEventFactory<TSentEvent, TRequest> : ISentEventFactory<TSentEvent, TRequest>
+    internal sealed class MapsterSentEventFactory<TSentEvent, TRequest> : ISentEventFactory<TSentEvent, TRequest>
         where TSentEvent : SentEvent
     {
         private readonly IMapper _mapper;

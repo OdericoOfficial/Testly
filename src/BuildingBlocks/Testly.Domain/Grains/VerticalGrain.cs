@@ -6,9 +6,9 @@ using Testly.Domain.Grains.Abstractions;
 
 namespace Testly.Domain.Grains
 {
-    internal sealed class SerialGrain : NodeGrain<SerialCommand>
+    internal sealed class VerticalGrain : NodeGrain<VerticalCommand>
     {
-        public SerialGrain(ILogger<SerialGrain> logger) : base(logger)
+        public VerticalGrain(ILogger<VerticalGrain> logger) : base(logger)
         {
         }
 

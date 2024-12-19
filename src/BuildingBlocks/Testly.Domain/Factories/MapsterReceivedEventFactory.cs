@@ -5,7 +5,7 @@ using Testly.Domain.Factories.Abstractions;
 
 namespace Testly.Domain.Factories
 {
-    internal class MapsterReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse> : IReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>
+    internal sealed class MapsterReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse> : IReceivedEventFactory<TSentEvent, TReceivedEvent, TResponse>
         where TSentEvent : SentEvent
         where TReceivedEvent : ReceivedEvent
     {

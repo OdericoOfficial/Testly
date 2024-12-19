@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.Commands
 {
-    public record ParallelCommand : INodeCommand
+    public sealed record HorizontalCommand : INodeCommand
     {
         public string Name { get; init; } = string.Empty;
 
@@ -11,7 +11,5 @@ namespace Testly.Domain.Commands
         public Guid Parent { get; init; }
 
         public Guid Root { get; init; }
-
-        public bool IsParallel { get; init; } = true;
     }
 }

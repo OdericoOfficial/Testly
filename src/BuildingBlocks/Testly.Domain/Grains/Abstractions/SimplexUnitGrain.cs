@@ -20,7 +20,7 @@ namespace Testly.Domain.Grains.Abstractions
         where TCommand : IUnitCommand
     {
         private readonly ISentPolicy<TCommand> _policy;
-        private readonly ISentFactory<TRequest, TCommand> _sentFactory;
+        private readonly ISentFactory<TRequest> _sentFactory;
         private readonly ISentEventFactory<TSentEvent, TRequest> _sentEventFactory;
 
         [SubscribeAsyncStream]
@@ -28,7 +28,7 @@ namespace Testly.Domain.Grains.Abstractions
 
         protected SimplexUnitGrain(ILogger logger,
             ISentPolicy<TCommand> policy,
-            ISentFactory<TRequest, TCommand> sentFactory, 
+            ISentFactory<TRequest> sentFactory, 
             ISentEventFactory<TSentEvent, TRequest> sentEventFactory) : base(logger)
         {
             _policy = policy;
@@ -76,10 +76,10 @@ namespace Testly.Domain.Grains.Abstractions
                 && State.Command is not null
                 && TSentEventStream is not null)
             {
-                var request = _sentFactory.Create(State.Command, GrainId);
+                var request = _sentFactory.Create(GrainId);
 
                 var tuple = await _sentFactory.CreateAsyncInvoker()
-                    .Invoke(request, State.Command);
+                    .Invoke(request);
 
                 var sentEvent = await _sentEventFactory.CreateAsync(request, tuple, GrainId);
                 await TSentEventStream.OnNextAsync(sentEvent);

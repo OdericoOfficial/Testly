@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.DependencyInjection;
@@ -69,9 +70,24 @@ namespace Testly.Domain.Analyzers
                     || attributeName == nameof(SingletonAttribute))
                     && attribute.AttributeClass.TypeArguments.Length != 0)
                     {
-                        var serviceSymbol = attribute.AttributeClass.TypeArguments[0];
+                        var serviceSymbol = (INamedTypeSymbol)attribute.AttributeClass.TypeArguments[0];
                         serviceNamespace = serviceSymbol.ContainingNamespace.ToDisplayString();
-                        serviceType = serviceSymbol.Name;
+                        if (serviceSymbol.TypeArguments.Length > 0)
+                        {
+                            var typeBuilder = new StringBuilder();
+                            typeBuilder.Append(serviceSymbol.Name);
+                            typeBuilder.Append('<');
+                            for (var i = 0;  i < serviceSymbol.TypeArguments.Length; i++)
+                            {
+                                if (i != 0)
+                                    typeBuilder.Append(", ");
+                                typeBuilder.Append(serviceSymbol.TypeArguments[i].ToDisplayString());
+                            }
+                            typeBuilder.Append('>');
+                            serviceType = typeBuilder.ToString();
+                        }
+                        else
+                            serviceType = serviceSymbol.Name;
                     }
 
                 if (attributeName == nameof(TransientAttribute))

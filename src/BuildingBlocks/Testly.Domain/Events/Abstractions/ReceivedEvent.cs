@@ -6,8 +6,6 @@
         
         public Guid SubscriberId { get; init; }
         
-        public bool IsParallel { get; init; }
-        
         public DateTime ReceivedTime { get; init; }
     }
 }

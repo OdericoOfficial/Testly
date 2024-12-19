@@ -2,7 +2,7 @@
 
 namespace Testly.Domain.Events
 {
-    public record MeasurementCompletedEvent : IEvent
+    public sealed record MeasurementCompletedEvent : IEvent
     {
         public Guid PublisherId { get; init; }
 

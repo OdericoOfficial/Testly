@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "Docker Compose": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+        "serviceActions": {
+            "testly-smtp-api": "StartDebugging",
+            "sqlserver": "StartWithoutDebugging",
+            "seq": "StartWithoutDebugging"
+        }
+    }
+  }
+}

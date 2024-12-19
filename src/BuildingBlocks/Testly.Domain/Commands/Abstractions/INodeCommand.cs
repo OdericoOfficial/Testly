@@ -9,7 +9,5 @@
         Guid Parent { get; init; }
 
         Guid Root { get; init; }
-
-        bool IsParallel { get; init; }
     }
 }

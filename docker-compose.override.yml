@@ -1,0 +1,31 @@
+services:
+
+  seq:
+    restart: unless-stopped
+    ports:
+      - "5341:80"
+    environment:
+      - ACCEPT_EULA=Y
+
+  sqlserver:
+    volumes:
+      - sqlserver-volume:/var/opt/mssql
+    environment:
+      - SA_PASSWORD=JWmTjvNnRfKcjvLo0r
+      - ACCEPT_EULA=Y
+    ports:
+      - 1433:1433
+
+  testly-smtp-api:
+    volumes:
+      - ./data/smtp:/var/opt/smtp
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+    ports:
+      - "44310:8080"
+      - "25:25" 
+
+volumes:
+  sqlserver-volume:
+    external: false    

@@ -8,8 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BuildingBlocks\Testly.Domain.Attributes\Testly.Domain.Attributes.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\BuildingBlocks\Testly.Domain.Analyzers\Testly.Domain.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\..\BuildingBlocks\Testly.Domain.Attributes\Testly.Domain.Attributes.csproj" />
     <ProjectReference Include="..\Testly.Smtp.Domain\Testly.Smtp.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SmtpServer" Version="10.0.1" />
   </ItemGroup>
 
 </Project>

@@ -19,7 +19,7 @@ namespace Testly.Domain.Grains.Abstractions
 
         protected DuplexUnitGrain(ILogger logger, 
             ISentPolicy<TCommand> policy, 
-            ISentFactory<TRequest, TCommand> sentFactory, 
+            ISentFactory<TRequest> sentFactory, 
             ISentEventFactory<TSentEvent, TRequest> sentEventFactory) : base(logger, policy, sentFactory, sentEventFactory)
         {
         }

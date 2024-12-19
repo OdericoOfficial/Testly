@@ -5,7 +5,7 @@ using Testly.Domain.Observers.Abstractions;
 
 namespace Testly.Domain.Observers
 {
-    internal class MiddlewareBatchObserver<TEvent> : IAsyncBatchObserver<TEvent>
+    internal sealed class MiddlewareBatchObserver<TEvent> : IAsyncBatchObserver<TEvent>
         where TEvent : IBatchEvent
     {
         private readonly ILogger<MiddlewareBatchObserver<TEvent>> _logger;

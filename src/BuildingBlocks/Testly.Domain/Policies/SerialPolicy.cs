@@ -1,13 +1,15 @@
 ﻿using System.Security.Cryptography;
-using Testly.Domain.Commands.Abstractions;
+using Microsoft.Extensions.DependencyInjection;
+using Testly.Domain.Attributes;
+using Testly.Domain.Commands;
 using Testly.Domain.Policies.Abstractions;
 
 namespace Testly.Domain.Policies
 {
-    internal class SerialPolicy<TCommand> : ISerialPolicy<TCommand>
-        where TCommand : ISerialCommand
+    [Singleton<ISentPolicy<SerialCommand>>, Policy]
+    internal sealed class SerialPolicy : ISentPolicy<SerialCommand>
     {
-        public async Task ScheduleAsync(TCommand item, Func<Task> sentTask)
+        public async Task ScheduleAsync(SerialCommand item, Func<Task> sentTask)
         {
             var count = item.Sample / item.BatchSize;
             var rest = item.Sample % item.BatchSize;
