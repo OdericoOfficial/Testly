@@ -43,6 +43,8 @@
 --
 -- 7. In the storage operations queries the columns need to be in the exact same order
 -- since the storage table operations support optionally streaming.
+USE StateStore;
+
 IF OBJECT_ID(N'[OrleansStorage]', 'U') IS NULL
 CREATE TABLE OrleansStorage
 (

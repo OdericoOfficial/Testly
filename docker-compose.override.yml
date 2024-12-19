@@ -10,11 +10,16 @@ services:
   sqlserver:
     volumes:
       - sqlserver-volume:/var/opt/mssql
+      - -./data/sql-scripts:/sql-scripts 
     environment:
       - SA_PASSWORD=JWmTjvNnRfKcjvLo0r
       - ACCEPT_EULA=Y
     ports:
       - 1433:1433
+    entrypoint:
+      - "/bin/bash"
+    command:
+      - "/data/sql-scripts/init-sql.sh"
 
   testly-smtp-api:
     volumes:

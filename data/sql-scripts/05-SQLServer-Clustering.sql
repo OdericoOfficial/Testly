@@ -1,4 +1,6 @@
 -- For each deployment, there will be only one (active) membership version table version column which will be updated periodically.
+USE ClusteringStore;
+
 IF OBJECT_ID(N'[OrleansMembershipVersionTable]', 'U') IS NULL
 CREATE TABLE OrleansMembershipVersionTable
 (

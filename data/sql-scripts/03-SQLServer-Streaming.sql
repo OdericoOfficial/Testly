@@ -3,6 +3,9 @@ Orleans Stream Message Sequence.
 This sequence reduces contention on generation of [MessageId] values vs an identity column.
 The CACHE parameter can be increased to further reduce contention.
 */
+
+USE PubSubStore;
+
 CREATE SEQUENCE OrleansStreamMessageSequence
 AS BIGINT
 START WITH 1
