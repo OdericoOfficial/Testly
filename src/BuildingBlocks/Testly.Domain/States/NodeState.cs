@@ -1,9 +1,10 @@
 ﻿using Testly.Domain.Commands.Abstractions;
 using Testly.Domain.Events;
+using Testly.Domain.States.Abstractions;
 
-namespace Testly.Domain.States.Abstractions
+namespace Testly.Domain.States
 {
-    public abstract class NodeState<TCommand>
+    public class NodeState<TCommand>
         where TCommand : INodeCommand
     {
         public DateTime CompletedTime { get; protected set; }
@@ -11,7 +12,7 @@ namespace Testly.Domain.States.Abstractions
         public TCommand? Command { get; protected set; }
 
         public List<ChildNodeState> Children { get; protected set; } = [];
-        
+
         public NodeCurrentState CurrentState { get; protected set; }
 
         public virtual void ApplyModified(TCommand item)

@@ -1,4 +1,0 @@
-CREATE DATABASE StateStore;
-CREATE DATABASE PubSubStore;
-CREATE DATABASE ClusteringStore;
-CREATE DATABASE ReminderStore;

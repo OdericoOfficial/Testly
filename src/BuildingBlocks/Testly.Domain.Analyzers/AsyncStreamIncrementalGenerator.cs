@@ -100,13 +100,13 @@ namespace Testly.Domain.Analyzers
                         builder.AppendLine($@"
         private IAsyncObserver<{item.EventName}>? {fieldPerfix}Observer;
         {prefix} IAsyncObserver<{item.EventName}> {item.EventName}Observer
-            => {fieldPerfix}Observer ??= ServiceProvider.GetRequiredKeyedService<IAsyncObserver<{item.EventName}>>(""MiddlewareObserver"");
+            => {fieldPerfix}Observer ??= ServiceProvider.GetRequiredService<IAsyncObserver<{item.EventName}>>();
 
         private StreamSubscriptionHandle<{item.EventName}>? {fieldPerfix}Handle;
 
-        private IAsyncObserver<{item.EventName}>? {fieldPerfix}BatchObserver;
-        {prefix} IAsyncObserver<{item.EventName}> {item.EventName}BatchObserver
-            => {fieldPerfix}BatchObserver ??= ServiceProvider.GetRequiredKeyedService<IAsyncObserver<{item.EventName}>>(""MiddlewareBatchObserver"");
+        private IAsyncBatchObserver<{item.EventName}>? {fieldPerfix}BatchObserver;
+        {prefix} IAsyncBatchObserver<{item.EventName}> {item.EventName}BatchObserver
+            => {fieldPerfix}BatchObserver ??= ServiceProvider.GetRequiredService<IAsyncBatchObserver<{item.EventName}>>();
 
         private StreamSubscriptionHandle<{item.EventName}>? {fieldPerfix}BatchHandle;");
 

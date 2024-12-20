@@ -3,6 +3,8 @@ using MapsterMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SmtpServer;
+using TorchSharp;
+using TorchSharp.Modules;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -13,7 +15,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .AddMarkedServices()
                 .AddMapster()
                 .AddSmtpServer();
-
+        
         internal static IServiceCollection AddMapster(this IServiceCollection services)
         {
             services.TryAddSingleton(provider =>
@@ -40,6 +42,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 return new SmtpServer.SmtpServer(options, provider);
             });
+            return services;
+        }
+    
+        internal static IServiceCollection AddSummaryWriter(this IServiceCollection services)
+        {
+            services.TryAddSingleton(provider =>
+                torch.utils.tensorboard.SummaryWriter("./data"));
             return services;
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Rougamo;
 using Testly.AOP.Rougamo;
 using Testly.Domain.Attributes;

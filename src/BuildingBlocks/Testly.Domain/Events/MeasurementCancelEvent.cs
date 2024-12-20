@@ -2,6 +2,7 @@
 
 namespace Testly.Domain.Events
 {
+    [Serializable]
     public sealed record MeasurementCancelEvent : IEvent
     {
         public Guid PublisherId { get; init; }

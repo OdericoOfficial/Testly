@@ -3,6 +3,7 @@ using Testly.Domain.States.Abstractions;
 
 namespace Testly.Domain.States
 {
+    [Serializable]
     public sealed class SentState<TSentEvent>
         where TSentEvent : SentEvent
     {

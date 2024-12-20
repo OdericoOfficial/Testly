@@ -5,6 +5,7 @@ using TorchSharp;
 
 namespace Testly.Domain.States
 {
+    [Serializable]
     public sealed class MeasurementState
     {
         public DateTime StartTime { get; private set; }

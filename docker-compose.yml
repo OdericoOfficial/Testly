@@ -4,15 +4,15 @@ services:
     image: datalust/seq:latest
     container_name: seq
 
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: sqlserver
+  redis:
+    image: redis:latest
+    container_name: redis
     
-  testly-smtp-api:
-    image: ${DOCKER_REGISTRY-}testlysmtpapi
-    container_name: testly-smtp-api
-    build:
-      context: .
-      dockerfile: src/Smtp/Testly.Smtp.Api/Dockerfile
-    depends_on:
-     - sqlserver
+  # testly-smtp-api:
+  #   image: ${DOCKER_REGISTRY-}testlysmtpapi
+  #   container_name: testly-smtp-api
+  #   build:
+  #     context: .
+  #     dockerfile: src/Smtp/Testly.Smtp.Api/Dockerfile
+  #   depends_on:
+  #    - sqlserver

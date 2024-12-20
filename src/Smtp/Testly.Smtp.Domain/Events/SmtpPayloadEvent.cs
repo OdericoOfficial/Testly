@@ -1,5 +1,6 @@
 ﻿namespace Testly.Smtp.Domain.Events
 {
+    [Serializable]
     public record SmtpPayloadEvent
     {
         public string From { get; init; } = string.Empty;

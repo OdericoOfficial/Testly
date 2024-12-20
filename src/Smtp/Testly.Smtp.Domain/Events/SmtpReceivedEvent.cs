@@ -2,6 +2,7 @@
 
 namespace Testly.Smtp.Domain.Events
 {
+    [Serializable]
     public record SmtpReceivedEvent : ReceivedEvent
     {
         public string From { get; init; } = string.Empty;

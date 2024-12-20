@@ -7,7 +7,7 @@ using Testly.Smtp.Domain.Events;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    [Duplex<SmtpSentEvent, SmtpReceivedEvent, MimeMessage>]
+    //[Duplex<SmtpSentEvent, SmtpReceivedEvent, MimeMessage>]
     public static partial class IServiceCollectionExtensions
     {
         public static IServiceCollection AddDomain(this IServiceCollection services)
